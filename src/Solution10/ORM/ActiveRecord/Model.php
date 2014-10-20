@@ -1,51 +1,67 @@
 <?php
 
-namespace Solution10\ORM;
+namespace Solution10\ORM\ActiveRecord;
 
 use Doctrine\Common\Inflector\Inflector;
 
-class ActiveRecord
+abstract class Model
 {
-    protected $_original = array();
-    protected $_changed = array();
+    protected $original = array();
+    protected $changed = array();
 
     protected $table;
 
     /**
-     * Returns the table name for this model
+     * Constructor.
+     *
+     */
+    public function __construct()
+    {
+        $this->initialize();
+    }
+
+    /**
+     * This function is responsible for setting up the models fields etc.
+     */
+    abstract protected function initialize();
+
+    /**
+     * Gets/sets the table name for this model.
      *
      * @return  string
      */
-    public function table()
+    public function table($table = null)
     {
-        if (!isset($this->table)) {
-
+        // Setting
+        if ($table !== null) {
+            $this->table = $table;
+            return $this;
         }
+
+        // Getting:
+        if (!isset($this->table)) {
+            $parts = explode('\\', get_class($this));
+            return strtolower(Inflector::pluralize(array_pop($parts)));
+        }
+        return $this->table;
     }
 
     /**
      * Sets a value into the object. Will cause the object to be marked as changed.
+     * You can also pass an associative array if you like.
      *
-     * @param   string  $key
-     * @param   mixed   $value
+     * @param   string|array    $key
+     * @param   mixed           $value
      * @return  $this
      */
-    public function setValue($key, $value)
+    public function set($key, $value)
     {
-        $this->_changed[$key] = $value;
-        return $this;
-    }
+        if (!is_array($key)) {
+            $key = array($key => $value);
+        }
 
-    /**
-     * Sets multiple key/values in one go. Will cause the object to be marked as changed.
-     *
-     * @param   array   $data
-     * @return  $this
-     */
-    public function setValues(array $data)
-    {
-        foreach ($data as $key => $value) {
-            $this->_changed[$key] = $value;
+        foreach ($key as $k => $v) {
+            $this->changed[$k] = $v;
         }
         return $this;
     }
@@ -53,19 +69,20 @@ class ActiveRecord
     /**
      * Gets a value out of the object. Will return the 'newest' value for this possible,
      * so if you load from a Repo, but change the value, this function returns the new value
-     * that you set. To get the old value, use original().
+     * that you set. To get the old value, use original(). You can also pass a default if you want.
      *
      * @param   string  $key
+     * @param   mixed   $default
      * @return  null
      */
-    public function getValue($key)
+    public function get($key, $default = null)
     {
-        if (array_key_exists($key, $this->_changed)) {
-            return $this->_changed[$key];
-        } elseif (array_key_exists($key, $this->_original)) {
-            return $this->_original[$key];
+        if (array_key_exists($key, $this->changed)) {
+            return $this->changed[$key];
+        } elseif (array_key_exists($key, $this->original)) {
+            return $this->original[$key];
         }
-        return null;
+        return $default;
     }
 
     /**
@@ -84,9 +101,9 @@ class ActiveRecord
      * @param   string  $key
      * @return  null
      */
-    public function getOriginal($key)
+    public function original($key)
     {
-        return (array_key_exists($key, $this->_original))? $this->_original[$key] : null;
+        return (array_key_exists($key, $this->original))? $this->original[$key] : null;
     }
 
     /**
@@ -105,9 +122,9 @@ class ActiveRecord
      *
      * @return  array
      */
-    public function getChanges()
+    public function changes()
     {
-        return $this->_changed;
+        return $this->changed;
     }
 
     /**
@@ -117,7 +134,7 @@ class ActiveRecord
      */
     public function hasChanges()
     {
-        return !empty($this->_changed);
+        return !empty($this->changed);
     }
 
     /**
@@ -128,10 +145,10 @@ class ActiveRecord
      */
     public function setAsSaved()
     {
-        foreach ($this->_changed as $key => $value) {
-            $this->_original[$key] = $value;
+        foreach ($this->changed as $key => $value) {
+            $this->original[$key] = $value;
         }
-        $this->_changed = array();
+        $this->changed = array();
 
         return $this;
     }

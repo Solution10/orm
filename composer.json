@@ -1,0 +1,29 @@
+{
+    "name": "solution10/orm",
+    "description": "Powerful, validating, Active Record style ORM.",
+    "minimum-stability": "stable",
+    "keywords": ["component", "orm", "database"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alex Gisby",
+            "email": "alex@solution10.com"
+        }
+    ],
+    "require": {
+        "php": ">= 5.3",
+        "doctrine/inflector": "1.0.*",
+        "doctrine/dbal": "2.4.*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.1.*",
+        "squizlabs/php_codesniffer": "1.*",
+        "satooshi/php-coveralls": "dev-master",
+        "apigen/apigen": "dev-master"
+    },
+    "autoload": {
+        "psr-0": {
+            "Solution10\\ORM": "src"
+        }
+    }
+}

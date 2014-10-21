@@ -2,48 +2,44 @@
 
 namespace Solution10\ORM\ActiveRecord;
 
-use Doctrine\Common\Inflector\Inflector;
-
 abstract class Model
 {
     protected $original = array();
     protected $changed = array();
 
-    protected $table;
+    protected $meta;
 
     /**
      * Constructor.
      *
+     * @param   Meta    $meta   Meta information for this model.
      */
-    public function __construct()
+    public function __construct(Meta $meta)
     {
-        $this->initialize();
+        $this->meta = $meta;
+    }
+
+    /**
+     * Factory, the easiest way of building models.
+     *
+     * @param   string  $className  Class name of the model you want.
+     * @return  Model
+     */
+    public static function factory($className)
+    {
+        // Build the meta object:
+        $meta = new Meta($className);
+        $meta = $className::init($meta);
+
+        return new $className($meta);
     }
 
     /**
      * This function is responsible for setting up the models fields etc.
      */
-    abstract protected function initialize();
-
-    /**
-     * Gets/sets the table name for this model.
-     *
-     * @return  string
-     */
-    public function table($table = null)
+    public static function init(Meta $meta)
     {
-        // Setting
-        if ($table !== null) {
-            $this->table = $table;
-            return $this;
-        }
-
-        // Getting:
-        if (!isset($this->table)) {
-            $parts = explode('\\', get_class($this));
-            return strtolower(Inflector::pluralize(array_pop($parts)));
-        }
-        return $this->table;
+        return $meta;
     }
 
     /**
@@ -54,7 +50,7 @@ abstract class Model
      * @param   mixed           $value
      * @return  $this
      */
-    public function set($key, $value)
+    public function set($key, $value = null)
     {
         if (!is_array($key)) {
             $key = array($key => $value);
@@ -114,7 +110,7 @@ abstract class Model
      */
     public function isValueSet($key)
     {
-        return array_key_exists($key, $this->_changed) || array_key_exists($key, $this->_original);
+        return array_key_exists($key, $this->changed) || array_key_exists($key, $this->original);
     }
 
     /**
@@ -161,6 +157,6 @@ abstract class Model
      */
     public function isLoaded()
     {
-        return !empty($this->_original);
+        return !empty($this->original);
     }
 }

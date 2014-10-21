@@ -16,6 +16,7 @@ class Meta
 {
     protected $modelClass;
     protected $table;
+    protected $primaryKey = 'id';
     protected $connection = 'default';
     protected $fields = array();
 
@@ -80,6 +81,21 @@ class Meta
             return (array_key_exists($fieldName, $this->fields))? $this->fields[$fieldName] : null;
         }
         $this->fields[$fieldName] = $fieldObject;
+        return $this;
+    }
+
+    /**
+     * Get/set which field (or fields) are the primary key of this table.
+     *
+     * @param   string|array|null    $pkField    Either the field name or an array of field names. Null to get.
+     * @return  string|array|$this
+     */
+    public function primaryKey($pkField = null)
+    {
+        if ($pkField === null) {
+            return $this->primaryKey;
+        }
+        $this->primaryKey = $pkField;
         return $this;
     }
 }

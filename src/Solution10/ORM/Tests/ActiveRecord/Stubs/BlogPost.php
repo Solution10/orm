@@ -3,12 +3,16 @@
 namespace Solution10\ORM\Tests\ActiveRecord\Stubs;
 
 use Solution10\ORM\ActiveRecord\Model;
+use Solution10\ORM\ActiveRecord\Meta;
+use Solution10\ORM\ActiveRecord\Field;
 
 class BlogPost extends Model
 {
-    public function initialize()
+    public static function init(Meta $meta)
     {
-        $this
-            ->table('posts');
+        return $meta
+                ->table('posts')
+                ->field('title', new Field\String)
+                ->field('entry', new Field\Text);
     }
 }

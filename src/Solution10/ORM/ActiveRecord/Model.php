@@ -57,6 +57,12 @@ abstract class Model
         }
 
         foreach ($key as $k => $v) {
+            // Perform the field transform on it:
+            $field = $this->meta->field($k);
+            if ($field) {
+                $v = $field->set($this, $k, $v);
+            }
+
             $this->changed[$k] = $v;
         }
         return $this;
@@ -73,12 +79,20 @@ abstract class Model
      */
     public function get($key, $default = null)
     {
+        $value = $default;
         if (array_key_exists($key, $this->changed)) {
-            return $this->changed[$key];
+            $value = $this->changed[$key];
         } elseif (array_key_exists($key, $this->original)) {
-            return $this->original[$key];
+            $value = $this->original[$key];
         }
-        return $default;
+
+        // Perform the field transform on it:
+        $field = $this->meta->field($key);
+        if ($field) {
+            $value = $field->get($this, $key, $value);
+        }
+
+        return $value;
     }
 
     /**
@@ -99,7 +113,17 @@ abstract class Model
      */
     public function original($key)
     {
-        return (array_key_exists($key, $this->original))? $this->original[$key] : null;
+        $value = (array_key_exists($key, $this->original))? $this->original[$key] : null;
+
+        if ($value !== null) {
+            // Perform the field transform on it:
+            $field = $this->meta->field($key);
+            if ($field) {
+                $value = $field->get($this, $key, $value);
+            }
+        }
+
+        return $value;
     }
 
     /**

@@ -65,4 +65,21 @@ class Meta
         $this->connection = $conn;
         return $this;
     }
+
+    /**
+     * Gets/sets fields on this meta object. Fields roughly equate to
+     * columns in your tables.
+     *
+     * @param   string                  $fieldName      Name of this field (column name)
+     * @param   FieldInterface|null     $fieldObject    Either a new Field() subclass or null to get
+     * @return  $this|FieldInterface|null
+     */
+    public function field($fieldName, FieldInterface $fieldObject = null)
+    {
+        if ($fieldObject === null) {
+            return (array_key_exists($fieldName, $this->fields))? $this->fields[$fieldName] : null;
+        }
+        $this->fields[$fieldName] = $fieldObject;
+        return $this;
+    }
 }

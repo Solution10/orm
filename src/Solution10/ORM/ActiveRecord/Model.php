@@ -39,7 +39,10 @@ abstract class Model
      */
     public static function init(Meta $meta)
     {
-        return $meta;
+        throw new Exception\ModelException(
+            'You must define init() in your model',
+            Exception\ModelException::NO_INIT
+        );
     }
 
     /**

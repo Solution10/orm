@@ -3,14 +3,15 @@
 namespace Solution10\ORM\Tests\ActiveRecord\Stubs;
 
 use Solution10\ORM\ActiveRecord\Model;
+use Solution10\ORM\ActiveRecord\Meta;
+use Solution10\ORM\ActiveRecord\Field;
+
 
 class User extends Model
 {
-    /**
-     * This function is responsible for setting up the models fields etc.
-     */
-    protected function initialize()
+    public static function init(Meta $meta)
     {
-        // Nothing to do, yet.
+        return $meta
+                ->field('name', new Field\String);
     }
 }

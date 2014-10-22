@@ -1,10 +1,10 @@
 <?php
 
-namespace Solution10\Config;
+namespace Solution10\ORM;
 
 use Exception as BaseException;
 
-class Exception extends BaseException
+abstract class Exception extends BaseException
 {
-    const INVALID_PATH = 1;
+
 }

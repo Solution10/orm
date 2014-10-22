@@ -6,6 +6,15 @@ use Solution10\ORM\ActiveRecord\Model;
 
 class ModelTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @expectedException       \Solution10\ORM\ActiveRecord\Exception\ModelException
+     * @expectedExceptionCode   \Solution10\ORM\ActiveRecord\Exception\ModelException::NO_INIT
+     */
+    public function testNoInitThrows()
+    {
+        Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\NoInitModel');
+    }
+
     public function testSetGetSingle()
     {
         $model = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\BlogPost');
@@ -96,7 +105,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('London', $object->get('city'));
     }
 
-    public function testoriginal()
+    public function testOriginal()
     {
         $object = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
         $object->set([

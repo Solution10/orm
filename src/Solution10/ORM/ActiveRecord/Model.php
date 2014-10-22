@@ -186,4 +186,46 @@ abstract class Model
     {
         return !empty($this->original);
     }
+
+    /**
+     * -------------------- Saving / Updating -------------------------
+     */
+
+    /**
+     * Saving a model. If loaded from the database, it'll update, if not
+     * it'll create.
+     *
+     * This function will run validation rules against your data and throw
+     * a ValidationException if things go wrong.
+     *
+     * @return  $this
+     * @throws  Exception\ValidationException
+     */
+    public function save()
+    {
+        // Work out if this is create or update.
+        return (array_key_exists($this->meta->primaryKey(), $this->original))?
+            $this->doCreate()
+            : $this->doUpdate();
+    }
+
+    /**
+     * Performs a create operation.
+     *
+     * @return  $this
+     */
+    protected function doCreate()
+    {
+        return $this;
+    }
+
+    /**
+     * Performs an update operation
+     *
+     * @return  $this
+     */
+    protected function doUpdate()
+    {
+        return $this;
+    }
 }

@@ -18,6 +18,9 @@
 		</testsuite>
 	</testsuites>
     <filter>
+        <whitelist addUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">./src</directory>
+        </whitelist>
         <blacklist>
             <directory suffix=".php">./src/Solution10/ORM/Tests</directory>
             <directory>./vendor</directory>

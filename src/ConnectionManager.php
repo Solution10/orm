@@ -7,10 +7,35 @@ use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
 use Solution10\ORM\Exception\ConnectionException;
 
-abstract class ConnectionManager
+class ConnectionManager
 {
-    protected static $connections;
-    protected static $builtConnections = [];
+    protected $connections = [];
+    protected $builtConnections = [];
+
+    /**
+     * @var     ConnectionManager   Holds the current instance of the connection manager
+     */
+    protected static $instance;
+
+    /**
+     * Gets the current instance of the connection manager, or creates a new one if none
+     * are registered.
+     *
+     * @param   ConnectionManager   $manager    Sets the current manager instance
+     * @return  ConnectionManager
+     */
+    public static function instance(ConnectionManager $manager = null)
+    {
+        if ($manager !== null) {
+            self::$instance = $manager;
+        }
+
+        if (!isset(self::$instance)) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
 
     /**
      * Registers a connection with the manager.
@@ -18,18 +43,30 @@ abstract class ConnectionManager
      * @param   string          $name       Connection name
      * @param   array           $params     Connection parameters
      * @param   Configuration   $config     Connection Configuration object
-     * @return  void
+     * @return  $this
      */
-    public static function registerConnection($name, array $params, Configuration $config = null)
+    public function registerConnection($name, array $params, Configuration $config = null)
     {
         if ($config === null) {
             $config = new Configuration();
         }
 
-        self::$connections[$name] = [
+        $this->connections[$name] = [
             'params' => $params,
             'config' => $config,
         ];
+
+        return $this;
+    }
+
+    /**
+     * Returns a list of registered connections with their params and config objects.
+     *
+     * @return  array
+     */
+    public function registeredConnections()
+    {
+        return $this->connections;
     }
 
     /**
@@ -39,22 +76,22 @@ abstract class ConnectionManager
      * @return  Connection
      * @throws  Exception\ConnectionException
      */
-    public static function connection($name)
+    public function connection($name)
     {
-        if (!array_key_exists($name, self::$connections)) {
+        if (!array_key_exists($name, $this->connections)) {
             throw new ConnectionException(
                 'Unknown connection "'.$name.'"',
                 ConnectionException::UNKNOWN_CONNECTION
             );
         }
 
-        if (!array_key_exists($name, self::$builtConnections)) {
-            self::$builtConnections[$name] = DriverManager::getConnection(
-                self::$connections[$name]['params'],
-                self::$connections[$name]['config']
+        if (!array_key_exists($name, $this->builtConnections)) {
+            $this->builtConnections[$name] = DriverManager::getConnection(
+                $this->connections[$name]['params'],
+                $this->connections[$name]['config']
             );
         }
 
-        return self::$builtConnections[$name];
+        return $this->builtConnections[$name];
     }
 }

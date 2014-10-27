@@ -2,7 +2,7 @@
     "name": "solution10/orm",
     "description": "Powerful, validating, Active Record style ORM.",
     "minimum-stability": "stable",
-    "keywords": ["component", "orm", "database"],
+    "keywords": ["component", "orm", "database", "active record"],
     "license": "MIT",
     "authors": [
         {
@@ -21,8 +21,9 @@
         "satooshi/php-coveralls": "dev-master"
     },
     "autoload": {
-        "psr-0": {
-            "Solution10\\ORM": "src"
+        "psr-4": {
+            "Solution10\\ORM\\": "src",
+            "Solution10\\ORM\\Tests\\": "tests"
         }
     }
 }

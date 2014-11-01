@@ -2,6 +2,8 @@
 
 namespace Solution10\ORM\ActiveRecord;
 
+use Solution10\ORM\ConnectionManager;
+
 abstract class Model
 {
     protected $original = array();
@@ -43,6 +45,16 @@ abstract class Model
             'You must define init() in your model',
             Exception\ModelException::NO_INIT
         );
+    }
+
+    /**
+     * Returns the meta information for this model
+     *
+     * @return  Meta
+     */
+    public function meta()
+    {
+        return $this->meta;
     }
 
     /**
@@ -205,8 +217,8 @@ abstract class Model
     {
         // Work out if this is create or update.
         return (array_key_exists($this->meta->primaryKey(), $this->original))?
-            $this->doCreate()
-            : $this->doUpdate();
+            $this->doUpdate()
+            : $this->doCreate();
     }
 
     /**
@@ -216,6 +228,22 @@ abstract class Model
      */
     protected function doCreate()
     {
+        $conn = ConnectionManager::instance()->connection(
+            $this->meta->connection()
+        );
+
+        $createData = $this->prepareDataForSave($this->changed);
+
+        $conn->insert(
+            $this->meta->table(),
+            $createData
+        );
+        $iid = $conn->lastInsertId();
+
+        // Mark it as saved and add in the ID
+        $this->setAsSaved();
+        $this->original[$this->meta->primaryKey()] = $iid;
+
         return $this;
     }
 
@@ -226,6 +254,77 @@ abstract class Model
      */
     protected function doUpdate()
     {
+        if (empty($this->changed)) {
+            return $this;
+        }
+
+        $conn = ConnectionManager::instance()->connection(
+            $this->meta->connection()
+        );
+
+        $pkField = $this->meta->primaryKey();
+        $updateData = $this->prepareDataForSave($this->changed);
+
+        $conn->update(
+            $this->meta->table(),
+            $updateData,
+            [$pkField => $this->original[$pkField]]
+        );
+
+        // Mark it as saved
+        $this->setAsSaved();
+
         return $this;
+    }
+
+    /**
+     * Processes each of the fields, running save() and validate on them
+     * ready for a save operation
+     *
+     * @param   array   $input
+     * @return  array
+     */
+    protected function prepareDataForSave(array $input)
+    {
+        $processed = [];
+        foreach ($input as $key => $value) {
+            $field = $this->meta->field($key);
+            $processed[$key] = $field->save($this, $key, $value);
+        }
+        return $processed;
+    }
+
+    /**
+     * ------------------- Read / Delete -----------------------
+     */
+
+    /**
+     * Retrieve an item by it's unique identifier
+     *
+     * @param   mixed   $id     The PK of this item
+     * @return  Model
+     */
+    public static function findById($id)
+    {
+        $thisClass = get_called_class();
+        $instance = self::factory($thisClass);
+
+        $meta = $instance->meta();
+        $conn = ConnectionManager::instance()->connection($meta->connection());
+
+        $sql = '
+            SELECT *
+            FROM '.$meta->table().'
+            WHERE '.$meta->primaryKey().' = ?
+            LIMIT 1
+        ';
+
+        $result = $conn->fetchAssoc($sql, [$id]);
+        if ($result) {
+            $instance->set($result);
+            $instance->setAsSaved();
+        }
+
+        return $instance;
     }
 }

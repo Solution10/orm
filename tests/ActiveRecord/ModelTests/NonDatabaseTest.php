@@ -1,10 +1,15 @@
 <?php
 
-namespace Solution10\ORM\Tests\ActiveRecord;
+namespace Solution10\ORM\Tests\ActiveRecord\ModelTests;
 
 use Solution10\ORM\ActiveRecord\Model;
 
-class ModelTest extends \PHPUnit_Framework_TestCase
+/**
+ * These tests focus on the behaviours that don't require a database connection.
+ * The reason for splitting out the tests is just to keep the execution runtime
+ * down; we don't need a DB Connection for every test, so don't make one.
+ */
+class NonDatabaseTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @expectedException       \Solution10\ORM\ActiveRecord\Exception\ModelException

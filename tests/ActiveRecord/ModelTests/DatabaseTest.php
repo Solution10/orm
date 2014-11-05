@@ -107,4 +107,25 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(1, $result[0]['id']);
         $this->assertEquals('Alex', $result[0]['name']);
     }
+
+    public function testDeletingPresentItem()
+    {
+        $user = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+        $user->set('name', 'Alex');
+        $user->save();
+
+        // Delete the user we just created.
+        $savedUser = User::findById(1);
+        $this->assertEquals($savedUser, $savedUser->delete());
+
+        // Verify it's gone:
+        $result = $this->conn->fetchAll('SELECT * FROM users');
+        $this->assertCount(0, $result);
+    }
+
+    public function testDeletingNonSavedItem()
+    {
+        $user = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+        $this->assertEquals($user, $user->delete());
+    }
 }

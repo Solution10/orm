@@ -327,4 +327,23 @@ abstract class Model
 
         return $instance;
     }
+
+    /**
+     * Deleting this item from the database.
+     *
+     * @return  $this
+     */
+    public function delete()
+    {
+        if ($this->isLoaded()) {
+            $conn = ConnectionManager::instance()->connection($this->meta->connection());
+            $pkField = $this->meta->primaryKey();
+            $conn->delete(
+                $this->meta->table(),
+                [$pkField => $this->get($pkField)]
+            );
+        }
+
+        return $this;
+    }
 }

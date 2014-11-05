@@ -346,4 +346,18 @@ abstract class Model
 
         return $this;
     }
+
+    /**
+     * -------------------- Querying -------------------
+     */
+
+    /**
+     * Returns a new query for this model.
+     *
+     * @return  Query
+     */
+    public static function query()
+    {
+        return new Query(get_called_class());
+    }
 }

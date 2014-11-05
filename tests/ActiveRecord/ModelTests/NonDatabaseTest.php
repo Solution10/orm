@@ -3,6 +3,7 @@
 namespace Solution10\ORM\Tests\ActiveRecord\ModelTests;
 
 use Solution10\ORM\ActiveRecord\Model;
+use Solution10\ORM\Tests\ActiveRecord\Stubs\User as UserStub;
 
 /**
  * These tests focus on the behaviours that don't require a database connection.
@@ -155,5 +156,12 @@ class NonDatabaseTest extends \PHPUnit_Framework_TestCase
             ]);
         $loadedObject->setAsSaved();
         $this->assertTrue($loadedObject->isLoaded());
+    }
+
+    public function testQuery()
+    {
+        $query = UserStub::query();
+        $this->assertInstanceOf('Solution10\ORM\ActiveRecord\Query', $query);
+        $this->assertEquals('Solution10\ORM\Tests\ActiveRecord\Stubs\User', $query->model());
     }
 }

@@ -2,12 +2,12 @@
 
 An ActiveRecord ORM based heavily on the truly excellent [JellyORM for Kohana](https://github.com/creatoro/jelly).
 
-[![Build Status](https://travis-ci.org/Solution10/ORM.svg?branch=master)](https://travis-ci.org/Solution10/ORM)
-[![Coverage Status](https://coveralls.io/repos/Solution10/ORM/badge.png)](https://coveralls.io/r/Solution10/ORM)
+[![Build Status](https://travis-ci.org/Solution10/orm.svg?branch=master)](https://travis-ci.org/Solution10/orm)
+[![Coverage Status](https://coveralls.io/repos/Solution10/orm/badge.png)](https://coveralls.io/r/Solution10/orm)
 
-[![Latest Stable Version](https://poser.pugx.org/solution10/ORM/v/stable.svg)](https://packagist.org/packages/solution10/ORM)
-[![Total Downloads](https://poser.pugx.org/solution10/ORM/downloads.svg)](https://packagist.org/packages/solution10/ORM)
-[![License](https://poser.pugx.org/solution10/ORM/license.svg)](https://packagist.org/packages/solution10/ORM)
+[![Latest Stable Version](https://poser.pugx.org/solution10/orm/v/stable.svg)](https://packagist.org/packages/solution10/orm)
+[![Total Downloads](https://poser.pugx.org/solution10/orm/downloads.svg)](https://packagist.org/packages/solution10/orm)
+[![License](https://poser.pugx.org/solution10/orm/license.svg)](https://packagist.org/packages/solution10/orm)
 
 ## Features
 
@@ -21,8 +21,8 @@ Installation is via composer, in the usual manner:
 
 ```json
 {
-    "require" {
-        "solution10/ORM": "1.*"
+    "require": {
+        "solution10/orm": "~1.0"
     }
 }
 ```
@@ -31,7 +31,7 @@ Installation is via composer, in the usual manner:
 
 ### Userguide
 
-[Check out the Wiki](https://github.com/Solution10/ORM/wiki)
+[Check out the Wiki](https://github.com/Solution10/orm/wiki)
 
 (or the /docs folder in the repo)
 
@@ -53,8 +53,8 @@ Alex Gisby: [GitHub](http://github.com/alexgisby), [Twitter](http://twitter.com/
 
 ## License
 
-[MIT](http://github.com/solution10/ORM/tree/master/LICENSE.md)
+[MIT](http://github.com/solution10/orm/tree/master/LICENSE.md)
 
 ## Contributing
 
-[Contributors Notes](http://github.com/solution10/ORM/tree/master/CONTRIBUTING.md)
+[Contributors Notes](http://github.com/solution10/orm/tree/master/CONTRIBUTING.md)

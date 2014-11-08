@@ -27,6 +27,9 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
+        $c = new ConnectionManager();
+        $c->registerInstance();
+
         ConnectionManager::instance()->registerConnection('default', [
             'driver' => 'pdo_sqlite',
             'path' => __DIR__.'/../tests.db',

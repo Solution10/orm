@@ -8,18 +8,11 @@ class ConnectionManagerTest extends \PHPUnit_Framework_TestCase
 {
     public function testInstanceCreates()
     {
+        $c = new ConnectionManager();
+        $c->registerInstance();
+
         $i = ConnectionManager::instance();
         $this->assertInstanceOf('Solution10\\ORM\\ConnectionManager', $i);
-    }
-
-    public function testSettingInstance()
-    {
-        $i = new ConnectionManager();
-        $i->mark = 'green';
-
-        ConnectionManager::instance($i);
-        $this->assertEquals($i, ConnectionManager::instance());
-        $this->assertEquals('green', ConnectionManager::instance()->mark);
     }
 
     public function testRegisteringConnections()

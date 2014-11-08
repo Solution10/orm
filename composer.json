@@ -12,6 +12,7 @@
     ],
     "require": {
         "php": ">= 5.4",
+        "solution10/managed-instance": "~1.0",
         "doctrine/inflector": "~1.0",
         "doctrine/dbal": "~2.4"
     },

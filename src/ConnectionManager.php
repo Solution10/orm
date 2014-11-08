@@ -5,37 +5,15 @@ namespace Solution10\ORM;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
+use Solution10\ManagedInstance\ManagedInstance;
 use Solution10\ORM\Exception\ConnectionException;
 
 class ConnectionManager
 {
+    use ManagedInstance;
+
     protected $connections = [];
     protected $builtConnections = [];
-
-    /**
-     * @var     ConnectionManager   Holds the current instance of the connection manager
-     */
-    protected static $instance;
-
-    /**
-     * Gets the current instance of the connection manager, or creates a new one if none
-     * are registered.
-     *
-     * @param   ConnectionManager   $manager    Sets the current manager instance
-     * @return  ConnectionManager
-     */
-    public static function instance(ConnectionManager $manager = null)
-    {
-        if ($manager !== null) {
-            self::$instance = $manager;
-        }
-
-        if (!isset(self::$instance)) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
-    }
 
     /**
      * Registers a connection with the manager.

@@ -358,12 +358,6 @@ abstract class Model
      */
     public static function query()
     {
-        $className = get_called_class();
-        $meta = new Meta($className);
-        $meta = $className::init($meta);
-
-        $conn = ConnectionManager::instance()->connection($meta->connection());
-
-        return new Query($conn, $className);
+        return new Query(get_called_class());
     }
 }

@@ -10,22 +10,9 @@ class QueryTest extends PHPUnit_Framework_TestCase
 {
     protected $conn;
 
-    public function setUp()
-    {
-        $c = new ConnectionManager();
-        $c->registerInstance();
-
-        ConnectionManager::instance()->registerConnection('default', [
-            'driver' => 'pdo_sqlite',
-            'path' => __DIR__.'/../tests.db',
-        ]);
-
-        $this->conn = ConnectionManager::instance()->connection('default');
-    }
-
     public function testConstructorValidModel()
     {
-        $query = new Query($this->conn, 'Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
         $this->assertInstanceOf('Solution10\ORM\ActiveRecord\Query', $query);
     }
 
@@ -35,12 +22,12 @@ class QueryTest extends PHPUnit_Framework_TestCase
      */
     public function testConstructorInvalidModel()
     {
-        new Query($this->conn, 'My\Unknown\Model');
+        new Query('My\Unknown\Model');
     }
 
     public function testGetSetModel()
     {
-        $query = new Query($this->conn, 'Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
         $this->assertEquals('Solution10\ORM\Tests\ActiveRecord\Stubs\User', $query->model());
 
         $this->assertEquals($query, $query->model('Solution10\ORM\Tests\ActiveRecord\Stubs\BlogPost'));
@@ -53,13 +40,13 @@ class QueryTest extends PHPUnit_Framework_TestCase
      */
     public function testSetUnknownModel()
     {
-        $query = new Query($this->conn, 'Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
         $query->model('Unknown\Model');
     }
 
     public function testSelect()
     {
-        $query = new Query($this->conn, 'Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
 
         // No alias
         $this->assertEquals($query, $query->select('id'));
@@ -78,16 +65,42 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(['id' => 'my_id', 'username' => 'my_username'], $query->select());
     }
 
-    public function testFrom()
+    public function testFromNoAlias()
     {
-        $query = new Query($this->conn, 'Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
 
         // No alias
         $this->assertEquals($query, $query->from('users'));
-        $this->assertEquals('users', $query->from());
+        $this->assertEquals(['users'], $query->from());
+    }
+
+    public function testFromWithAlias()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
 
         // With alias
         $query->from('users', 'u');
         $this->assertEquals(['users' => 'u'], $query->from());
+    }
+
+    public function testFromMixedAlias()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        // With mixture:
+        $query->from('users', 'u');
+        $query->from('usernames');
+        $this->assertEquals(['users' => 'u', 'usernames'], $query->from());
+    }
+
+    /**
+     * Testing where() in it's most basic form field, operator, value
+     */
+    public function testWhereBasic()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        $this->assertEquals($query, $query->where('name', '=', 'Alex'));
+        print_r($query->where());
     }
 }

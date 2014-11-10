@@ -45,7 +45,7 @@ This will create an api/ folder for you to peruse.
 
 ## PHP Requirements
 
-- PHP >= 5.3
+- PHP >= 5.4
 
 ## Author
 

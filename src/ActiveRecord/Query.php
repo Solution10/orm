@@ -19,16 +19,19 @@ class Query
     protected $query;
 
     /**
+     * @var     array   Holds the query in an array form before we use the QueryBuilder to do it for real.
+     */
+    protected $parts = [];
+
+    /**
      * Starts a brand new query
      *
-     * @param   Connection  $conn   Database connection we're using
      * @param   string  $model  The Model class that this query is for
      * @throws  QueryException
      */
-    public function __construct(Connection $conn, $model)
+    public function __construct($model)
     {
         $this->model($model);
-        $this->query = $conn->createQueryBuilder();
     }
 
     /**
@@ -68,14 +71,14 @@ class Query
     public function select($columns = null)
     {
         if ($columns === null) {
-            return $this->query->getQueryPart('select');
+            return (array_key_exists('SELECT', $this->parts))? $this->parts['SELECT'] : [];
         }
 
         if (!is_array($columns)) {
             $columns = [$columns];
         }
 
-        $this->query->select($columns);
+        $this->parts['SELECT'] = $columns;
         return $this;
     }
 
@@ -89,17 +92,51 @@ class Query
     public function from($table = null, $alias = null)
     {
         if ($table === null) {
-            $parts = $this->query->getQueryPart('from');
-            if ($parts[0]['alias'] === null) {
-                return $parts[0]['table'];
-            } else {
-                return [$parts[0]['table'] => $parts[0]['alias']];
-            }
+            return (array_key_exists('FROM', $this->parts))? $this->parts['FROM'] : [];
         }
 
-        // Reset the from:
-        $this->query->resetQueryPart('from');
-        $this->query->from($table, $alias);
+        ($alias !==  null)? $this->parts['FROM'][$table] = $alias : $this->parts['FROM'][] = $table;
+
+        return $this;
+    }
+
+    /**
+     * Get/Set an "AND WHERE" clause on the query. You can either pass a simple
+     * comparison ('name', '=', 'Alex') or a function to append multiple queries
+     * in a group:
+     *
+     *  $query->where(function($query) {
+     *          $query
+     *              ->where('user', '=', 'Alex')
+     *              ->where('country', '=', 'GB');
+     *      })
+     *      ->orWhere(function($query) {
+     *          $query->where('user', '=', 'Lucie');
+     *          $query->where('country', '=', 'CA');
+     *      });
+     *
+     * Would generate:
+     *
+     *  WHERE (name = 'Alex' AND country = 'GB')
+     *  OR (name = 'Lucie' AND country = 'CA')
+     *
+     * @param   string|function|null    Fieldname|callback for group|to return
+     * @param   string|null             Operator (=, !=, <>, <= etc)
+     * @param   mixed|null              Value to test against
+     * @return  $this|array             $this on set, array on get
+     */
+    public function where($field = null, $operator = null, $value = null)
+    {
+        if ($field === null) {
+            return (array_key_exists('WHERE', $this->parts))? $this->parts['WHERE'] : [];
+        }
+
+        if ($field instanceof \Closure) {
+            // Return and merge the result of these queries
+        } else {
+//            $this->query->where($field.' '.$operator.' '.$this->query->createNamedParameter($value));
+        }
+
         return $this;
     }
 }

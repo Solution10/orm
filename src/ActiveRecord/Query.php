@@ -120,12 +120,40 @@ class Query
      *  WHERE (name = 'Alex' AND country = 'GB')
      *  OR (name = 'Lucie' AND country = 'CA')
      *
-     * @param   string|function|null    Fieldname|callback for group|to return
-     * @param   string|null             Operator (=, !=, <>, <= etc)
-     * @param   mixed|null              Value to test against
-     * @return  $this|array             $this on set, array on get
+     * @param   string|function|null    $field      Fieldname|callback for group|to return
+     * @param   string|null             $operator   Operator (=, !=, <>, <= etc)
+     * @param   mixed|null              $value      Value to test against
+     * @return  $this|array                         $this on set, array on get
      */
     public function where($field = null, $operator = null, $value = null)
+    {
+        return $this->applyWhere('AND', $field, $operator, $value);
+    }
+
+    /**
+     * Adds a new 'OR ' predicate to the query. Same rules for types as where() so check
+     * the docs there.
+     *
+     * @param   string|function|null    $field      Fieldname|callback for group|to return
+     * @param   string|null             $operator   Operator (=, !=, <>, <= etc)
+     * @param   mixed|null              $value      Value to test against
+     * @return  $this|array                         $this on set, array on get
+     */
+    public function orWhere($field = null, $operator = null, $value = null)
+    {
+        return $this->applyWhere('OR', $field, $operator, $value);
+    }
+
+    /**
+     * Actually applies the where() clause. See docs on where() for field descriptions.
+     *
+     * @param   string                  $join       AND or OR
+     * @param   string|function|null    $field      Fieldname|callback for group|to return
+     * @param   string|null             $operator   Operator (=, !=, <>, <= etc)
+     * @param   mixed|null              $value      Value to test against
+     * @return  $this|array                         $this on set, array on get
+     */
+    protected function applyWhere($join, $field = null, $operator = null, $value = null)
     {
         if ($field === null) {
             return (array_key_exists('WHERE', $this->parts))? $this->parts['WHERE'] : [];
@@ -133,8 +161,19 @@ class Query
 
         if ($field instanceof \Closure) {
             // Return and merge the result of these queries
+            $subQuery = new self($this->model);
+            $field($subQuery);
+            $this->parts['WHERE'][] = [
+                'join' => $join,
+                'sub' => $subQuery->where()
+            ];
         } else {
-//            $this->query->where($field.' '.$operator.' '.$this->query->createNamedParameter($value));
+            $this->parts['WHERE'][] = [
+                'join' => $join,
+                'field' => $field,
+                'operator' => $operator,
+                'value' => $value
+            ];
         }
 
         return $this;

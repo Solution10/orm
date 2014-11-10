@@ -101,6 +101,130 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
 
         $this->assertEquals($query, $query->where('name', '=', 'Alex'));
-        print_r($query->where());
+
+        $where = $query->where();
+        $this->assertCount(1, $where);
+        $this->assertEquals([
+                'join' => 'AND',
+                'field' => 'name',
+                'operator' => '=',
+                'value' => 'Alex'
+            ], $where[0]);
+    }
+
+    public function testOrWhereBasic()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        $this->assertEquals($query, $query->orWhere('name', '=', 'Alex'));
+
+        $where = $query->where();
+        $this->assertCount(1, $where);
+        $this->assertEquals([
+                'join' => 'OR',
+                'field' => 'name',
+                'operator' => '=',
+                'value' => 'Alex',
+            ], $where[0]);
+    }
+
+    public function testWhereGroupBasic()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        $this->assertEquals(
+            $query,
+            $query->where(function (Query $query) {
+                $query->where('name', '=', 'Alex');
+            })
+        );
+
+        $this->assertEquals([[
+                'join' => 'AND',
+                'sub' => [
+                    [
+                        'join' => 'AND',
+                        'field' => 'name',
+                        'operator' => '=',
+                        'value' => 'Alex',
+                    ]
+                ],
+            ]], $query->where());
+    }
+
+    public function testOrWhereGroupBasic()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        $this->assertEquals(
+            $query,
+            $query->orWhere(function (Query $query) {
+                $query->orWhere('name', '=', 'Alex');
+            })
+        );
+
+        $this->assertEquals([[
+                'join' => 'OR',
+                'sub' => [
+                    [
+                        'join' => 'OR',
+                        'field' => 'name',
+                        'operator' => '=',
+                        'value' => 'Alex',
+                    ]
+                ],
+            ]], $query->where());
+    }
+
+    /**
+     * Time for a final, large and complex query to test the where() and orWhere() clauses.
+     */
+    public function testWhereComplex()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        $query
+            ->where('name', '=', 'Alex')
+            ->orWhere('name', '=', 'Lucie')
+            ->where(function (Query $query) {
+                $query
+                    ->where('city', '=', 'London')
+                    ->where('country', '=', 'GB');
+            })
+            ->orWhere(function (Query $query) {
+                $query
+                    ->where('city', '=', 'Toronto')
+                    ->where('country', '=', 'CA')
+                    ->orWhere(function (Query $query) {
+                        $query->where('active', '!=', true);
+                    });
+            });
+
+        $where = $query->where();
+        $this->assertCount(4, $where);
+        $this->assertEquals([
+            ['join' => 'AND', 'field' => 'name', 'operator' => '=', 'value' => 'Alex'],
+            ['join' => 'OR', 'field' => 'name', 'operator' => '=', 'value' => 'Lucie'],
+            [
+                'join' => 'AND',
+                'sub' => [
+                    ['join' => 'AND', 'field' => 'city', 'operator' => '=', 'value' => 'London'],
+                    ['join' => 'AND', 'field' => 'country', 'operator' => '=', 'value' => 'GB']
+                ]
+            ],
+            [
+                'join' => 'OR',
+                'sub' => [
+                    ['join' => 'AND', 'field' => 'city', 'operator' => '=', 'value' => 'Toronto'],
+                    ['join' => 'AND', 'field' => 'country', 'operator' => '=', 'value' => 'CA'],
+                    [
+                        'join' => 'OR',
+                        'sub' => [
+                            ['join' => 'AND', 'field' => 'active', 'operator' => '!=', 'value' => true],
+                        ]
+                    ]
+                ]
+            ]
+        ], $where);
     }
 }

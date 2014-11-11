@@ -2,7 +2,6 @@
 
 namespace Solution10\ORM\ActiveRecord;
 
-use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Solution10\ORM\ActiveRecord\Exception\QueryException;
 
@@ -120,7 +119,7 @@ class Query
      *  WHERE (name = 'Alex' AND country = 'GB')
      *  OR (name = 'Lucie' AND country = 'CA')
      *
-     * @param   string|function|null    $field      Fieldname|callback for group|to return
+     * @param   string|\Closure|null    $field      Fieldname|callback for group|to return
      * @param   string|null             $operator   Operator (=, !=, <>, <= etc)
      * @param   mixed|null              $value      Value to test against
      * @return  $this|array                         $this on set, array on get
@@ -134,7 +133,7 @@ class Query
      * Adds a new 'OR ' predicate to the query. Same rules for types as where() so check
      * the docs there.
      *
-     * @param   string|function|null    $field      Fieldname|callback for group|to return
+     * @param   string|\Closure|null    $field      Fieldname|callback for group|to return
      * @param   string|null             $operator   Operator (=, !=, <>, <= etc)
      * @param   mixed|null              $value      Value to test against
      * @return  $this|array                         $this on set, array on get
@@ -148,7 +147,7 @@ class Query
      * Actually applies the where() clause. See docs on where() for field descriptions.
      *
      * @param   string                  $join       AND or OR
-     * @param   string|function|null    $field      Fieldname|callback for group|to return
+     * @param   string|\Closure|null    $field      Fieldname|callback for group|to return
      * @param   string|null             $operator   Operator (=, !=, <>, <= etc)
      * @param   mixed|null              $value      Value to test against
      * @return  $this|array                         $this on set, array on get
@@ -200,6 +199,38 @@ class Query
             $this->parts['ORDER BY'][$f] = $d;
         }
 
+        return $this;
+    }
+
+    /**
+     * Get/Set the limit of the query
+     *
+     * @param   int|null    $limit  Int to set, null to get
+     * @return  $this|int
+     */
+    public function limit($limit = null)
+    {
+        if ($limit === null) {
+            return (array_key_exists('LIMIT', $this->parts))? $this->parts['LIMIT'] : null;
+        }
+
+        $this->parts['LIMIT'] = (int)$limit;
+        return $this;
+    }
+
+    /**
+     * Get/Set the offset of the query
+     *
+     * @param   int|null    $offset     Int to set, null to get
+     * @return  $this|int
+     */
+    public function offset($offset = null)
+    {
+        if ($offset === null) {
+            return (array_key_exists('OFFSET', $this->parts))? $this->parts['OFFSET'] : 0;
+        }
+
+        $this->parts['OFFSET'] = (int)$offset;
         return $this;
     }
 }

@@ -3,7 +3,6 @@
 namespace Solution10\ORM\Tests\ActiveRecord;
 
 use Solution10\ORM\ActiveRecord\Query;
-use Solution10\ORM\ConnectionManager;
 use PHPUnit_Framework_TestCase;
 
 class QueryTest extends PHPUnit_Framework_TestCase
@@ -251,5 +250,27 @@ class QueryTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals($query, $query->orderBy($order));
         $this->assertEquals($order, $query->orderBy());
+    }
+
+    public function testLimit()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        $this->assertEquals($query, $query->limit(10));
+        $this->assertEquals(10, $query->limit());
+
+        $query->limit('20');
+        $this->assertEquals(20, $query->limit());
+    }
+
+    public function testOffset()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        $this->assertEquals($query, $query->offset(10));
+        $this->assertEquals(10, $query->offset());
+
+        $query->offset('20');
+        $this->assertEquals(20, $query->offset());
     }
 }

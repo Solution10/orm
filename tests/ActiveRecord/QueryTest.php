@@ -227,4 +227,29 @@ class QueryTest extends PHPUnit_Framework_TestCase
             ]
         ], $where);
     }
+
+    public function testOrderBySingle()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        $this->assertEquals($query, $query->orderBy('name', 'DESC'));
+        $this->assertEquals(['name' => 'DESC'], $query->orderBy());
+
+        // And test the default:
+        $query->orderBy('name');
+        $this->assertEquals(['name' => 'ASC'], $query->orderBy());
+    }
+
+    public function testOrderByArray()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        $order = [
+            'name' => 'ASC',
+            'age' => 'DESC',
+        ];
+
+        $this->assertEquals($query, $query->orderBy($order));
+        $this->assertEquals($order, $query->orderBy());
+    }
 }

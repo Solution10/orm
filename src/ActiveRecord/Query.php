@@ -178,4 +178,28 @@ class Query
 
         return $this;
     }
+
+    /**
+     * Get/Set the ORDER BY component of the query.
+     *
+     * @param   string|array|null       $field      Field name or an array of field => direction. Null to get
+     * @param   string|null             $direction  ASC by default
+     * @return  $this|array
+     */
+    public function orderBy($field = null, $direction = 'ASC')
+    {
+        if ($field === null) {
+            return (array_key_exists('ORDER BY', $this->parts))? $this->parts['ORDER BY'] : [];
+        }
+
+        if (!is_array($field)) {
+            $field = [$field => $direction];
+        }
+
+        foreach ($field as $f => $d) {
+            $this->parts['ORDER BY'][$f] = $d;
+        }
+
+        return $this;
+    }
 }

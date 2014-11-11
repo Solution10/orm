@@ -100,6 +100,41 @@ class Query
     }
 
     /**
+     * Gets/Sets a JOIN.
+     *
+     * @param   string|null     $left       String to set the left table (or the alias in from()), null to get
+     * @param   string|null     $right      Name of the right table
+     * @param   string|null     $alias      Right table alias, if any
+     * @param   string|null     $predicate  String expression of how to make the join (u.id = p.u_id)
+     * @param   string          $type       Type (LEFT, RIGHT, INNER)
+     * @return  $this|array                 $this on set, array on get
+     * @throws  Exception\QueryException    On unknown $type
+     */
+    public function join($left = null, $right = null, $alias = null, $predicate = null, $type = 'INNER')
+    {
+        if ($left === null) {
+            return (array_key_exists('JOIN', $this->parts))? $this->parts['JOIN'] : [];
+        }
+
+        if (!in_array($type, ['LEFT', 'RIGHT', 'INNER'])) {
+            throw new QueryException(
+                'Unknown join type "'.$type.'"',
+                QueryException::BAD_JOIN_TYPE
+            );
+        }
+
+        $this->parts['JOIN'][] = [
+            'type' => $type,
+            'left' => $left,
+            'right' => $right,
+            'rightAlias' => $alias,
+            'predicate' => $predicate,
+        ];
+
+        return $this;
+    }
+
+    /**
      * Get/Set an "AND WHERE" clause on the query. You can either pass a simple
      * comparison ('name', '=', 'Alex') or a function to append multiple queries
      * in a group:

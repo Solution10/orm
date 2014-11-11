@@ -273,4 +273,68 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $query->offset('20');
         $this->assertEquals(20, $query->offset());
     }
+
+    public function testJoinDefault()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        $this->assertEquals($query, $query->join('users', 'posts', 'p', 'users.id = p.user_id'));
+        $this->assertEquals([[
+                'type' => 'INNER',
+                'left' => 'users',
+                'right' => 'posts',
+                'rightAlias' => 'p',
+                'predicate' => 'users.id = p.user_id'
+            ]], $query->join());
+    }
+
+    public function testJoinExplicitType()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        $this->assertEquals($query, $query->join('users', 'posts', 'p', 'users.id = p.user_id', 'LEFT'));
+        $this->assertEquals([[
+                'type' => 'LEFT',
+                'left' => 'users',
+                'right' => 'posts',
+                'rightAlias' => 'p',
+                'predicate' => 'users.id = p.user_id'
+            ]], $query->join());
+    }
+
+    public function testMultiJoin()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        $query
+            ->join('users', 'posts', 'p', 'users.id = p.user_id')
+            ->join('users', 'comments', 'c', 'users.id = c.user_id', 'LEFT')
+        ;
+        $this->assertEquals([
+            [
+                'type' => 'INNER',
+                'left' => 'users',
+                'right' => 'posts',
+                'rightAlias' => 'p',
+                'predicate' => 'users.id = p.user_id'
+            ],
+            [
+                'type' => 'LEFT',
+                'left' => 'users',
+                'right' => 'comments',
+                'rightAlias' => 'c',
+                'predicate' => 'users.id = c.user_id'
+            ]
+        ], $query->join());
+    }
+
+    /**
+     * @expectedException       \Solution10\ORM\ActiveRecord\Exception\QueryException
+     * @expectedExceptionCode   \Solution10\ORM\ActiveRecord\Exception\QueryException::BAD_JOIN_TYPE
+     */
+    public function testJoinBadType()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+        $query->join('users', 'posts', 'p', 'users.id = p.user_id', 'MOO');
+    }
 }

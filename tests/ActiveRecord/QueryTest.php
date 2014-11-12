@@ -337,4 +337,18 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
         $query->join('users', 'posts', 'p', 'users.id = p.user_id', 'MOO');
     }
+
+    public function testValues()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        $values = [
+            'username' => 'Alex',
+            'city' => 'London',
+        ];
+
+        $this->assertEquals([], $query->values());
+        $this->assertEquals($query, $query->values($values));
+        $this->assertEquals($values, $query->values());
+    }
 }

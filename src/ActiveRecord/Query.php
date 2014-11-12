@@ -23,6 +23,11 @@ class Query
     protected $parts = [];
 
     /**
+     * @var     array   Values for a writey type query
+     */
+    protected $values = [];
+
+    /**
      * Starts a brand new query
      *
      * @param   string  $model  The Model class that this query is for
@@ -266,6 +271,21 @@ class Query
         }
 
         $this->parts['OFFSET'] = (int)$offset;
+        return $this;
+    }
+
+    /**
+     * Get/Set the values for a write-type query
+     *
+     * @param   array|null  $values     field => value for set, null for get
+     * @return  $this|null
+     */
+    public function values($values = null)
+    {
+        if ($values === null) {
+            return $this->values;
+        }
+        $this->values = $values;
         return $this;
     }
 }

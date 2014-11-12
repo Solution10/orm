@@ -7,8 +7,6 @@ use PHPUnit_Framework_TestCase;
 
 class QueryTest extends PHPUnit_Framework_TestCase
 {
-    protected $conn;
-
     public function testConstructorValidModel()
     {
         $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
@@ -350,5 +348,15 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals([], $query->values());
         $this->assertEquals($query, $query->values($values));
         $this->assertEquals($values, $query->values());
+    }
+
+    public function testGroupBy()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        $clause = 'username';
+        $this->assertEquals(null, $query->groupBy());
+        $this->assertEquals($query, $query->groupBy($clause));
+        $this->assertEquals($clause, $query->groupBy());
     }
 }

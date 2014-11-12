@@ -288,4 +288,20 @@ class Query
         $this->values = $values;
         return $this;
     }
+
+    /**
+     * Get/Set the group by clause
+     *
+     * @param   string|null     $clause     String to set, null to get
+     * @return  $this|string|null
+     */
+    public function groupBy($clause = null)
+    {
+        if ($clause === null) {
+            return (array_key_exists('GROUP BY', $this->parts))? $this->parts['GROUP BY'] : null;
+        }
+
+        $this->parts['GROUP BY'] = $clause;
+        return $this;
+    }
 }

@@ -2,11 +2,17 @@
 
 namespace Solution10\ORM\ActiveRecord;
 
-use Doctrine\DBAL\Query\QueryBuilder;
 use Solution10\ORM\ActiveRecord\Exception\QueryException;
+use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\DBAL\Connection;
 
 class Query
 {
+    /**
+     * @var     Connection
+     */
+    protected $conn;
+
     /**
      * @var     string
      */
@@ -63,7 +69,22 @@ class Query
     }
 
     /**
-     * ------------------- Query Building Passthroughs -------------------
+     * Gets/Sets the connection for the query builder to use
+     *
+     * @param   Connection|null     $conn   Connection instance to set, null to get
+     * @return  $this|null|Connection
+     */
+    public function connection(Connection $conn = null)
+    {
+        if ($conn === null) {
+            return $this->conn;
+        }
+        $this->conn = $conn;
+        return $this;
+    }
+
+    /**
+     * ------------------- Query Building -------------------
      */
 
     /**
@@ -319,5 +340,35 @@ class Query
 
         $this->parts['HAVING'] = $having;
         return $this;
+    }
+
+    /**
+     * Returns the SQL query as a string
+     *
+     * @return  string
+     * @throws  QueryException  If there's no connection, you'll get an exception
+     */
+    public function sql()
+    {
+        if ($this->conn === null) {
+            throw new QueryException(
+                'No connection set! Use connection() to set a connection on the query',
+                QueryException::CONNECTION_MISSING
+            );
+        }
+
+        $builder = new QueryBuilder($this->conn);
+
+        return $builder->getSQL();
+    }
+
+    /**
+     * toString is a shortcut for sql()
+     *
+     * @return  string
+     */
+    public function __toString()
+    {
+        return $this->sql();
     }
 }

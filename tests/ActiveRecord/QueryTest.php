@@ -359,4 +359,14 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($query, $query->groupBy($clause));
         $this->assertEquals($clause, $query->groupBy());
     }
+
+    public function testHaving()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+
+        $clause = 'city = "London"';
+        $this->assertEquals(null, $query->having());
+        $this->assertEquals($query, $query->having($clause));
+        $this->assertEquals($clause, $query->having());
+    }
 }

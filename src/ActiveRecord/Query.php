@@ -113,6 +113,7 @@ class Query
      * @param   string|null     $table      String to set, NULL to return
      * @param   string|null     $alias
      * @return  $this|string|array
+     * @throws  QueryException
      */
     public function from($table = null, $alias = null)
     {
@@ -120,7 +121,11 @@ class Query
             return (array_key_exists('FROM', $this->parts))? $this->parts['FROM'] : [];
         }
 
-        ($alias !==  null)? $this->parts['FROM'][$table] = $alias : $this->parts['FROM'][] = $table;
+        if ($table !== null && $alias === null) {
+            throw new QueryException('You must provide a table alias', QueryException::MISSING_ALIAS);
+        }
+
+        $this->parts['FROM'][$table] = $alias;
 
         return $this;
     }
@@ -359,7 +364,78 @@ class Query
 
         $builder = new QueryBuilder($this->conn);
 
+        if (array_key_exists('SELECT', $this->parts)) {
+            $builder->select($this->parts['SELECT']);
+        }
+        if (array_key_exists('FROM', $this->parts)) {
+            foreach ($this->parts['FROM'] as $table => $alias) {
+                $builder->from($table, $alias);
+            }
+        }
+        if (array_key_exists('JOIN', $this->parts)) {
+            foreach ($this->parts['JOIN'] as $join) {
+                switch ($join['type']) {
+                    case 'INNER':
+                        $builder->join($join['left'], $join['right'], $join['rightAlias'], $join['predicate']);
+                        break;
+
+                    case 'LEFT':
+                        $builder->leftJoin($join['left'], $join['right'], $join['rightAlias'], $join['predicate']);
+                        break;
+
+                    case 'RIGHT':
+                        $builder->rightJoin($join['left'], $join['right'], $join['rightAlias'], $join['predicate']);
+                        break;
+                }
+            }
+        }
+        if (array_key_exists('WHERE', $this->parts)) {
+            $where = $this->buildWhere($this->parts['WHERE'], $builder);
+            $builder->where($where);
+        }
+        if (array_key_exists('ORDER BY', $this->parts)) {
+            foreach ($this->parts['ORDER BY'] as $field => $direction) {
+                $builder->addOrderBy($field, $direction);
+            }
+        }
+        if (array_key_exists('LIMIT', $this->parts)) {
+            $builder->setMaxResults($this->parts['LIMIT']);
+        }
+        if (array_key_exists('OFFSET', $this->parts)) {
+            $builder->setFirstResult($this->parts['OFFSET']);
+        }
+        if (array_key_exists('HAVING', $this->parts)) {
+            $builder->having($this->parts['HAVING']);
+        }
+        if (array_key_exists('GROUP BY', $this->parts)) {
+            $builder->groupBy($this->parts['GROUP BY']);
+        }
+
         return $builder->getSQL();
+    }
+
+    /**
+     * Where is a complex, recursive beast, so this builds up each layer of the query.
+     *
+     * @param   array        $conditions
+     * @param   QueryBuilder $builder
+     * @return  string
+     */
+    protected function buildWhere(array $conditions, QueryBuilder $builder)
+    {
+        $where = '';
+        foreach ($conditions as $c) {
+            $where .= ' '.$c['join'].' ';
+            if (array_key_exists('sub', $c)) {
+                $where .= '(';
+                $where .= $this->buildWhere($c['sub'], $builder);
+                $where .= ')';
+            } else {
+                $where .= $c['field'].' '.$c['operator'].' '.$builder->createNamedParameter($c['value']);
+            }
+        }
+        $where = trim(preg_replace('/^(AND|OR) /', '', trim($where)));
+        return $where;
     }
 
     /**

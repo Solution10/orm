@@ -4,6 +4,7 @@ namespace Solution10\ORM\Tests\ActiveRecord;
 
 use Solution10\ORM\ActiveRecord\Query;
 use PHPUnit_Framework_TestCase;
+use Solution10\ORM\ConnectionManager;
 
 class QueryTest extends PHPUnit_Framework_TestCase
 {
@@ -62,15 +63,6 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(['id' => 'my_id', 'username' => 'my_username'], $query->select());
     }
 
-    public function testFromNoAlias()
-    {
-        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
-
-        // No alias
-        $this->assertEquals($query, $query->from('users'));
-        $this->assertEquals(['users'], $query->from());
-    }
-
     public function testFromWithAlias()
     {
         $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
@@ -80,14 +72,14 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(['users' => 'u'], $query->from());
     }
 
-    public function testFromMixedAlias()
+    /**
+     * @expectedException       \Solution10\ORM\ActiveRecord\Exception\QueryException
+     * @expectedExceptionCode   \Solution10\ORM\ActiveRecord\Exception\QueryException::MISSING_ALIAS
+     */
+    public function testFromWithoutAlias()
     {
         $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
-
-        // With mixture:
-        $query->from('users', 'u');
-        $query->from('usernames');
-        $this->assertEquals(['users' => 'u', 'usernames'], $query->from());
+        $query->from('noalias');
     }
 
     /**
@@ -368,5 +360,116 @@ class QueryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(null, $query->having());
         $this->assertEquals($query, $query->having($clause));
         $this->assertEquals($clause, $query->having());
+    }
+
+    public function testConnection()
+    {
+        $c = new ConnectionManager();
+        $c->registerInstance();
+        ConnectionManager::instance()->registerConnection('default', [
+            'driver' => 'pdo_sqlite',
+            'path' => __DIR__.'/../tests.db',
+        ]);
+
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+        $conn = ConnectionManager::instance()->connection('default');
+
+        $this->assertNull($query->connection());
+        $this->assertEquals($query, $query->connection($conn));
+        $this->assertEquals($conn, $query->connection());
+    }
+
+    /**
+     * @expectedException       \Solution10\ORM\ActiveRecord\Exception\QueryException
+     * @expectedExceptionCode   \Solution10\ORM\ActiveRecord\Exception\QueryException::CONNECTION_MISSING
+     */
+    public function testSQLNoConnection()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+        $query
+            ->select(['id', 'username', 'password'])
+            ->from('users', 'u')
+            ->where('username', '=', 'Alex')
+            ->limit(1)
+        ;
+        $query->sql();
+    }
+
+    public function testSQL()
+    {
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+        $query
+            ->select(['id', 'username', 'password'])
+            ->from('users', 'u')
+            ->join('u', 'packages', 'p', 'u.id = p.user_id')
+            ->where('username', '=', 'Alex')
+            ->orWhere(function (Query $query) {
+                $query->where('username', '=', 'Lucie');
+                $query->where('location', '=', 'Toronto');
+            })
+            ->limit(1)
+        ;
+
+        // We need a connection to generate the SQL. Thanks Doctrine.
+        $c = new ConnectionManager();
+        $c->registerInstance();
+        ConnectionManager::instance()->registerConnection('default', [
+                'driver' => 'pdo_sqlite',
+                'path' => __DIR__.'/../tests.db',
+            ]);
+
+        $query->connection(ConnectionManager::instance()->connection('default'));
+
+        $sql = $query->sql();
+        $this->assertEquals(
+            'SELECT id, username, password FROM users u '.
+            'INNER JOIN packages p ON u.id = p.user_id'.
+            ' WHERE username = :dcValue1 OR (username = :dcValue2 AND location = :dcValue3) LIMIT 1',
+            $sql
+        );
+    }
+
+    public function testToString()
+    {
+        // I'm extremely aware this query is totally contrived and not realistic.
+        // I just want to check the SQL being spat out.
+
+        $query = new Query('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+        $query
+            ->select(['id', 'username', 'password', 'COUNT(d.id) as num'])
+            ->from('users', 'u')
+            ->join('u', 'packages', 'p', 'u.id = p.user_id')
+            ->join('u', 'departments', 'd', 'u.id = d.user_id', 'LEFT')
+            ->join('u', 'invoices', 'i', 'u.id = i.user_id', 'RIGHT')
+            ->where('username', '=', 'Alex')
+            ->orWhere(function (Query $query) {
+                $query->where('username', '=', 'Lucie');
+                $query->where('location', '=', 'Toronto');
+            })
+            ->orderBy('username', 'DESC')
+            ->groupBy('d.id')
+            ->having('num > 20')
+            ->limit(1)
+            ->offset(20)
+        ;
+
+        // We need a connection to generate the SQL. Thanks Doctrine.
+        $c = new ConnectionManager();
+        $c->registerInstance();
+        ConnectionManager::instance()->registerConnection('default', [
+                'driver' => 'pdo_sqlite',
+                'path' => __DIR__.'/../tests.db',
+            ]);
+
+        $query->connection(ConnectionManager::instance()->connection('default'));
+
+        $this->assertEquals(
+            'SELECT id, username, password, COUNT(d.id) as num FROM users u '.
+            'INNER JOIN packages p ON u.id = p.user_id LEFT JOIN departments d ON u.id = d.user_id '.
+            'RIGHT JOIN invoices i ON u.id = i.user_id '.
+            'WHERE username = :dcValue1 OR (username = :dcValue2 AND location = :dcValue3) '.
+            'GROUP BY d.id HAVING num > 20 ORDER BY username DESC LIMIT 1 OFFSET 20',
+            (string)$query
+        );
     }
 }

@@ -131,4 +131,21 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
         $user = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
         $this->assertEquals($user, $user->delete());
     }
+
+    public function testQueryingForItems()
+    {
+        $this->conn->insert('users', ['name' => 'Alex']);
+        $this->conn->insert('users', ['name' => 'Lucie']);
+        $this->conn->insert('users', ['name' => 'Archibald']);
+
+        $results = User::query('SELECT * FROM users');
+
+        $this->assertInstanceOf('Solution10\\ORM\\ActiveRecord\\Resultset', $results);
+        $this->assertCount(3, $results);
+
+        $this->assertInstanceOf('Solution10\ORM\Tests\ActiveRecord\Stubs\User', $results[0]);
+        $this->assertEquals('Alex', $results[0]->get('name'));
+        $this->assertEquals('Lucie', $results[1]->get('name'));
+        $this->assertEquals('Archibald', $results[2]->get('name'));
+    }
 }

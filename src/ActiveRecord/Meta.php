@@ -53,7 +53,7 @@ class Meta
     }
 
     /**
-     * Gets/sets the connection for this model.
+     * Gets/sets the connection name for this model.
      *
      * @param   string|null     $conn
      * @return  string|$this

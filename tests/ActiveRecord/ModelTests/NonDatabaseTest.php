@@ -157,11 +157,4 @@ class NonDatabaseTest extends \PHPUnit_Framework_TestCase
         $loadedObject->setAsSaved();
         $this->assertTrue($loadedObject->isLoaded());
     }
-
-    public function testQuery()
-    {
-        $query = UserStub::query();
-        $this->assertInstanceOf('Solution10\ORM\ActiveRecord\Query', $query);
-        $this->assertEquals('Solution10\ORM\Tests\ActiveRecord\Stubs\User', $query->model());
-    }
 }

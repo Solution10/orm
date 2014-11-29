@@ -3,9 +3,13 @@
 namespace Solution10\ORM\ActiveRecord;
 
 use Solution10\ORM\ConnectionManager;
+use Solution10\Collection\Collection;
 
 abstract class Model
 {
+    const SINGLE = 1;
+    const MANY = 2;
+
     protected $original = array();
     protected $changed = array();
 
@@ -310,22 +314,13 @@ abstract class Model
         $instance = self::factory($thisClass);
 
         $meta = $instance->meta();
-        $conn = ConnectionManager::instance()->connection($meta->connection());
 
-        $sql = '
+        return self::query('
             SELECT *
             FROM '.$meta->table().'
             WHERE '.$meta->primaryKey().' = ?
             LIMIT 1
-        ';
-
-        $result = $conn->fetchAssoc($sql, [$id]);
-        if ($result) {
-            $instance->set($result);
-            $instance->setAsSaved();
-        }
-
-        return $instance;
+        ', [$id], [], self::SINGLE);
     }
 
     /**
@@ -352,12 +347,38 @@ abstract class Model
      */
 
     /**
-     * Returns a new query for this model.
+     * Runs a query against this model, returning either an instance of this model, or a Collection
      *
-     * @return  Query
+     * @param   string  $query      Query to run
+     * @param   array   $params     Params to inject into the query
+     * @param   array   $types      Parameter type hints for the query
+     * @param   int     $return     Return type: self::SINGLE or self::MANY
+     * @return  Model|Collection
      */
-    public static function query()
+    public static function query($query, array $params = [], array $types = [], $return = self::MANY)
     {
-        return new Query(get_called_class());
+        $thisClass = get_called_class();
+        $instance = self::factory($thisClass);
+
+        $meta = $instance->meta();
+        /* @var $conn \Doctrine\DBAL\Connection */
+        $conn = ConnectionManager::instance()->connection($meta->connection());
+
+        $result = $conn->fetchAll($query, $params, $types);
+
+        if ($return === self::SINGLE) {
+            if (count($result) > 0) {
+                $instance->set($result[0]);
+                $instance->setAsSaved();
+            }
+            $toReturn = $instance;
+        } else {
+            $c = new Resultset($result);
+            $c->resultModel($instance);
+            $toReturn = $c;
+        }
+
+        return $toReturn;
     }
+
 }

@@ -1,4 +1,3 @@
-- Validation
 - Field classes
     - Datetime
     - Integer
@@ -8,4 +7,5 @@
     - Enum
     - Email
     - Primary
+- Relationships
 - Documentation! Yay!

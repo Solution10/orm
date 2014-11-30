@@ -16,7 +16,7 @@ abstract class Field implements FieldInterface
      */
     public function __construct(array $options = [])
     {
-        $this->options = array_merge($this->options, $options);
+        $this->options = array_replace_recursive($this->options, $options);
     }
 
     /**
@@ -60,5 +60,15 @@ abstract class Field implements FieldInterface
     public function save(Model $model, $field, $value)
     {
         return $value;
+    }
+
+    /**
+     * Returns the validation rules attached to this field.
+     *
+     * @return array
+     */
+    public function validation()
+    {
+        return (array_key_exists('rules', $this->options))? $this->options['rules'] : [];
     }
 }

@@ -37,4 +37,11 @@ interface FieldInterface
      * @return  mixed   The $value, with any changes made
      */
     public function save(Model $model, $field, $value);
+
+    /**
+     * Returns the validation rules attached to this field.
+     *
+     * @return array
+     */
+    public function validation();
 }

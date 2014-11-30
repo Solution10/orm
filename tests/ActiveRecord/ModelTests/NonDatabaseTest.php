@@ -2,8 +2,8 @@
 
 namespace Solution10\ORM\Tests\ActiveRecord\ModelTests;
 
+use Solution10\ORM\ActiveRecord\Exception\ValidationException;
 use Solution10\ORM\ActiveRecord\Model;
-use Solution10\ORM\Tests\ActiveRecord\Stubs\User as UserStub;
 
 /**
  * These tests focus on the behaviours that don't require a database connection.
@@ -156,5 +156,61 @@ class NonDatabaseTest extends \PHPUnit_Framework_TestCase
             ]);
         $loadedObject->setAsSaved();
         $this->assertTrue($loadedObject->isLoaded());
+    }
+
+    /**
+     * ------------------- Validation tests ------------------
+     */
+
+    /**
+     * @expectedException   \Solution10\ORM\ActiveRecord\Exception\ValidationException
+     */
+    public function testValidationEmptyModel()
+    {
+        $object = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\UserValidated');
+        $object->validate();
+    }
+
+    public function testValidationValid()
+    {
+        $object = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\UserValidated');
+
+        $object->set('name', 'Alex');
+        $this->assertTrue($object->validate());
+
+        $object->set('about', 'Alex is awesome');
+        $this->assertTrue($object->validate());
+    }
+
+    /**
+     * @expectedException   \Solution10\ORM\ActiveRecord\Exception\ValidationException
+     */
+    public function testValidationFails()
+    {
+        $object = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\UserValidated');
+        $object->set('name', null);
+        $object->validate();
+    }
+
+    public function testValidationMixesOriginalAndChanged()
+    {
+        $object = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\UserValidated');
+
+        $object->set('name', 'Alex');
+        $object->set('about', 'Alex is awesome');
+        $this->assertTrue($object->validate());
+        $object->setAsSaved();
+
+        $object->set('name', null);
+        $thrown = false;
+        try {
+            $object->validate();
+        } catch (ValidationException $e) {
+            $thrown = true;
+            $messages = $e->getMessages();
+            $this->assertCount(1, $messages);
+            $this->assertEquals('Name is required', $messages['name'][0]);
+        }
+        $this->assertTrue($thrown);
     }
 }

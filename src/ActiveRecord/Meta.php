@@ -85,6 +85,16 @@ class Meta
     }
 
     /**
+     * Returns all the fields that are associated with this model
+     *
+     * @return  FieldInterface[]
+     */
+    public function fields()
+    {
+        return $this->fields;
+    }
+
+    /**
      * Get/set which field (or fields) are the primary key of this table.
      *
      * @param   string|array|null    $pkField    Either the field name or an array of field names. Null to get.

@@ -3,7 +3,8 @@
 namespace Solution10\ORM\ActiveRecord;
 
 use Solution10\ORM\ConnectionManager;
-use Solution10\Collection\Collection;
+use Solution10\ORM\ActiveRecord\Exception\ValidationException;
+use Valitron\Validator;
 
 abstract class Model
 {
@@ -299,6 +300,46 @@ abstract class Model
     }
 
     /**
+     * ------------------ Validation ----------------------
+     */
+
+    /**
+     * Validates a model based on it's current form. That means changes and
+     * original data are merged together to ensure a correct representation.
+     *
+     * @return  bool
+     * @throws  ValidationException
+     */
+    public function validate()
+    {
+        $input = array_replace_recursive($this->original, $this->changed);
+        $input = $this->prepareDataForSave($input);
+
+        $v = new Validator($input);
+
+        $fields = $this->meta->fields();
+        foreach ($fields as $name => $field) {
+            $rules = $field->validation();
+            foreach ($rules as $rule) {
+                $type = array_shift($rule);
+
+                $params = $rule;
+                array_unshift($params, $name);
+                array_unshift($params, $type);
+                call_user_func_array([$v, 'rule'], $params);
+            }
+        }
+
+        if (!$v->validate()) {
+            $e = new ValidationException();
+            $e->setMessages($v->errors());
+            throw $e;
+        }
+        return true;
+    }
+
+
+    /**
      * ------------------- Read / Delete -----------------------
      */
 
@@ -347,13 +388,13 @@ abstract class Model
      */
 
     /**
-     * Runs a query against this model, returning either an instance of this model, or a Collection
+     * Runs a query against this model, returning either an instance of this model, or a Resultset
      *
      * @param   string  $query      Query to run
      * @param   array   $params     Params to inject into the query
      * @param   array   $types      Parameter type hints for the query
      * @param   int     $return     Return type: self::SINGLE or self::MANY
-     * @return  Model|Collection
+     * @return  Model|Resultset
      */
     public static function query($query, array $params = [], array $types = [], $return = self::MANY)
     {

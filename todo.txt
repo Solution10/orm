@@ -1,11 +1,6 @@
 - Field classes
-    - Datetime
-    - Integer
-    - Float
-    - Password
-    - Boolean
-    - Enum
-    - Email
-    - Primary
+    - Finish unit tests for DateTime::get()
+- Passing extra validation into validate();
 - Relationships
+- DocBlocks
 - Documentation! Yay!

@@ -2,21 +2,43 @@
 
 namespace Solution10\ORM\ActiveRecord;
 
+use Solution10\ORM\ActiveRecord\Exception\FieldException;
+
 abstract class Field implements FieldInterface
 {
     protected $options = [
         'inDatabase' => true
     ];
 
+    protected $required;
+
     /**
      * Constructor. Pass in the options for this field which are merged into
      * the defaults, defined on the class.
      *
-     * @param   array   $options
+     * @param   array $options
+     * @throws  FieldException
      */
     public function __construct(array $options = [])
     {
         $this->options = array_replace_recursive($this->options, $options);
+
+        // Make sure all of the required fields are there:
+        if (isset($this->required)) {
+            $missing = [];
+            foreach ($this->required as $req) {
+                if (!array_key_exists($req, $this->options)) {
+                    $missing[] = $req;
+                }
+            }
+
+            if (!empty($missing)) {
+                throw new FieldException(
+                    'Missing required options: ' . implode(', ', $missing),
+                    FieldException::MISSING_REQUIRED_OPTIONS
+                );
+            }
+        }
     }
 
     /**

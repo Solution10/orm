@@ -6,6 +6,7 @@ use Solution10\ORM\ActiveRecord\Model;
 use Solution10\ORM\Tests\ActiveRecord\FieldTests;
 use Solution10\ORM\ActiveRecord\Field\DateTime;
 use DateTime as NativeDateTime;
+use DateTimeZone;
 
 class DateTimeTests extends FieldTests
 {
@@ -16,14 +17,27 @@ class DateTimeTests extends FieldTests
 
     protected function fieldInstance()
     {
-        return new DateTime();
+        return new DateTime([
+            'timezone' => new DateTimeZone('Europe/London')
+        ]);
+    }
+
+    /**
+     * @expectedException       \Solution10\ORM\ActiveRecord\Exception\FieldException
+     * @expectedExceptionCode   \Solution10\ORM\ActiveRecord\Exception\FieldException::MISSING_REQUIRED_OPTIONS
+     */
+    public function testConstructMissingTimezone()
+    {
+        new DateTime();
     }
 
     public function testSet()
     {
         $m = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
 
-        $d = new DateTime();
+        $d = new DateTime([
+            'timezone' => new DateTimeZone('Europe/London')
+        ]);
 
         // Testing with timestamp:
         $now = time();
@@ -33,7 +47,7 @@ class DateTimeTests extends FieldTests
         $this->assertEquals(1404300707, $d->set($m, 'created', '2014-07-02 12:31:47'));
 
         // DateTime Object:
-        $ndt = new NativeDateTime('2014-07-02 12:31:47');
+        $ndt = new NativeDateTime('2014-07-02 12:31:47', new DateTimeZone('Europe/London'));
         $this->assertEquals(1404300707, $d->set($m, 'created', $ndt));
     }
 
@@ -42,18 +56,22 @@ class DateTimeTests extends FieldTests
         $m = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
 
         $d = new DateTime([
-            'format' => 'Y-m-d H:i:s'
+            'format' => 'Y-m-d H:i:s',
+            'timezone' => new DateTimeZone('Europe/London')
         ]);
 
         // Testing with timestamp:
         $now = time();
-        $this->assertEquals(date('Y-m-d H:i:s'), $d->set($m, 'created', $now));
+        $expected = (new NativeDateTime(null, new DateTimeZone('Europe/London')))
+            ->setTimeStamp($now)
+            ->format('Y-m-d H:i:s');
+        $this->assertEquals($expected, $d->set($m, 'created', $now));
 
         // String:
         $this->assertEquals('2014-07-02 12:31:47', $d->set($m, 'created', '2014-07-02 12:31:47'));
 
         // DateTime Object:
-        $ndt = new NativeDateTime('2014-07-02 12:31:47');
+        $ndt = new NativeDateTime('2014-07-02 12:31:47', new DateTimeZone('Europe/London'));
         $this->assertEquals('2014-07-02 12:31:47', $d->set($m, 'created', $ndt));
     }
 

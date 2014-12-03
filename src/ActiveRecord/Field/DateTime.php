@@ -20,6 +20,8 @@ use DateTime as NativeDateTime;
  */
 class DateTime extends Field
 {
+    protected $required = ['timezone'];
+
     /**
      * This is called before a value is returned from the model, so any
      * transformations from database format to PHP value should occur here.
@@ -32,10 +34,10 @@ class DateTime extends Field
     public function get(Model $model, $field, $value)
     {
         if (is_numeric($value)) {
-            $dt = new NativeDateTime();
+            $dt = new NativeDateTime(null, $this->options['timezone']);
             $dt->setTimestamp($value);
         } else {
-            $dt = new NativeDateTime($value);
+            $dt = new NativeDateTime($value, $this->options['timezone']);
         }
 
         return $dt;

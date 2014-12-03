@@ -307,10 +307,19 @@ abstract class Model
      * Validates a model based on it's current form. That means changes and
      * original data are merged together to ensure a correct representation.
      *
+     * If you want extra, one-shot validation rules, you can pass in an array of
+     * rules in the format: {field}: [{rules}] like so:
+     *
+     *  ->validate([
+     *      'password' => [['match', 'password_repeat'], ['lengthMin', 8]]
+     *  ]);
+     *
+     *
+     * @param   array   $extra  Extra validation rules.
      * @return  bool
      * @throws  ValidationException
      */
-    public function validate()
+    public function validate(array $extra = [])
     {
         $input = array_replace_recursive($this->original, $this->changed);
         $input = $this->prepareDataForSave($input);
@@ -325,6 +334,18 @@ abstract class Model
 
                 $params = $rule;
                 array_unshift($params, $name);
+                array_unshift($params, $type);
+                call_user_func_array([$v, 'rule'], $params);
+            }
+        }
+
+        // Add in the extra validation:
+        foreach ($extra as $field => $rules) {
+            foreach ($rules as $rule) {
+                $type = array_shift($rule);
+
+                $params = $rule;
+                array_unshift($params, $field);
                 array_unshift($params, $type);
                 call_user_func_array([$v, 'rule'], $params);
             }

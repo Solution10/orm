@@ -1,6 +1,4 @@
-- Field classes
-    - Finish unit tests for DateTime::get()
-- Passing extra validation into validate();
+- Passing translations for errors
 - Relationships
 - DocBlocks
 - Documentation! Yay!

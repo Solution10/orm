@@ -213,4 +213,35 @@ class NonDatabaseTest extends \PHPUnit_Framework_TestCase
         }
         $this->assertTrue($thrown);
     }
+
+    public function testValidationWithExtraPasses()
+    {
+        $object = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\UserValidated');
+
+        $object->set('name', 'Alex');
+        $this->assertTrue($object->validate());
+
+        $this->assertTrue($object->validate([
+            'name' => [
+                ['contains', 'le']
+            ]
+        ]));
+    }
+
+    /**
+     * @expectedException   \Solution10\ORM\ActiveRecord\Exception\ValidationException
+     */
+    public function testValidationWithExtraFails()
+    {
+        $object = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\UserValidated');
+
+        $object->set('name', 'Alex');
+        $this->assertTrue($object->validate());
+
+        $object->validate([
+            'name' => [
+                ['contains', 'uo']
+            ]
+        ]);
+    }
 }

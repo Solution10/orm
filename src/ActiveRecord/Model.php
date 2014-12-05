@@ -2,7 +2,6 @@
 
 namespace Solution10\ORM\ActiveRecord;
 
-use Solution10\ORM\ConnectionManager;
 use Solution10\ORM\ActiveRecord\Exception\ValidationException;
 use Valitron\Validator;
 
@@ -43,6 +42,9 @@ abstract class Model
 
     /**
      * This function is responsible for setting up the models fields etc.
+     *
+     * @param   Meta    $meta
+     * @throws  Exception\ModelException
      */
     public static function init(Meta $meta)
     {

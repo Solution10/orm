@@ -21,6 +21,7 @@ class UserValidated extends Model
             ->field('about', new Field\Text)
 
             ->relationship('posts', 'hasMany', 'BlogPost')
+            ->relationship('orders', 'hasMany', 'Solution10\\ORM\\Tests\\ActiveRecord\\Stubs\\Order')
         ;
     }
 }

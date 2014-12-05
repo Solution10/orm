@@ -55,6 +55,16 @@ class Meta
     }
 
     /**
+     * Returns the singular of the current table. Used for auto-joining
+     *
+     * @return  string
+     */
+    public function tableSingular()
+    {
+        return Inflector::singularize($this->table);
+    }
+
+    /**
      * Gets/sets the connection name for this model.
      *
      * @param   string|null     $conn

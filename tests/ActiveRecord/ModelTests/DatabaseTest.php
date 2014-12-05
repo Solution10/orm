@@ -6,6 +6,7 @@ use Solution10\ORM\ActiveRecord\Model;
 use Solution10\ORM\ConnectionManager;
 use PHPUnit_Framework_TestCase;
 use Solution10\ORM\Tests\ActiveRecord\Stubs\User;
+use Solution10\ORM\Tests\ActiveRecord\Stubs\UserValidated;
 
 /**
  * These tests focus on the behaviours that DO require a database connection.
@@ -38,11 +39,20 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
         // Clear the database and create our test tables:
         $this->conn = ConnectionManager::instance()->connection('default');
         $this->conn->query('DROP TABLE IF EXISTS users');
+        $this->conn->query('DROP TABLE IF EXISTS orders');
 
         $this->conn->query('
             CREATE TABLE `users` (
               `id` INTEGER PRIMARY KEY,
               `name` varchar(32) NOT NULL
+            );
+        ');
+
+        $this->conn->query('
+            CREATE TABLE `orders` (
+              `id` INTEGER PRIMARY KEY,
+              `user_id` INTEGER,
+              `total` FLOAT
             );
         ');
     }
@@ -147,5 +157,24 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('Alex', $results[0]->get('name'));
         $this->assertEquals('Lucie', $results[1]->get('name'));
         $this->assertEquals('Archibald', $results[2]->get('name'));
+    }
+
+    /**
+     * ------------------- Relationship Testing ----------------------
+     */
+
+    public function testReadHasMany()
+    {
+        $this->conn->insert('users', ['name' => 'Alex']);
+        $this->conn->insert('orders', ['user_id' => 1, 'total' => 27.5]);
+        $this->conn->insert('orders', ['user_id' => 1, 'total' => 5.55]);
+        $this->conn->insert('orders', ['user_id' => 27, 'total' => 127.99]);
+
+        $object = UserValidated::findById(1);
+
+        $orders = $object->fetchRelated('orders');
+        $this->assertCount(2, $orders);
+        $this->assertEquals(27.5, $orders[0]->get('total'));
+        $this->assertEquals(5.55, $orders[1]->get('total'));
     }
 }

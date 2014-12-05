@@ -233,9 +233,7 @@ abstract class Model
      */
     protected function doCreate()
     {
-        $conn = ConnectionManager::instance()->connection(
-            $this->meta->connection()
-        );
+        $conn = $this->meta->connectionInstance();
 
         $createData = $this->prepareDataForSave($this->changed);
 
@@ -263,9 +261,7 @@ abstract class Model
             return $this;
         }
 
-        $conn = ConnectionManager::instance()->connection(
-            $this->meta->connection()
-        );
+        $conn = $this->meta->connectionInstance();
 
         $pkField = $this->meta->primaryKey();
         $updateData = $this->prepareDataForSave($this->changed);
@@ -395,7 +391,7 @@ abstract class Model
     public function delete()
     {
         if ($this->isLoaded()) {
-            $conn = ConnectionManager::instance()->connection($this->meta->connection());
+            $conn = $this->meta->connectionInstance();
             $pkField = $this->meta->primaryKey();
             $conn->delete(
                 $this->meta->table(),
@@ -426,7 +422,7 @@ abstract class Model
 
         $meta = $instance->meta();
         /* @var $conn \Doctrine\DBAL\Connection */
-        $conn = ConnectionManager::instance()->connection($meta->connection());
+        $conn = $meta->connectionInstance();
 
         $result = $conn->fetchAll($query, $params, $types);
 

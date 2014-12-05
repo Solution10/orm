@@ -4,6 +4,7 @@ namespace Solution10\ORM\ActiveRecord;
 
 use Doctrine\Common\Inflector\Inflector;
 use Solution10\ORM\ActiveRecord\Exception\MetaException;
+use Solution10\ORM\ConnectionManager;
 
 /**
  * Class Meta
@@ -77,6 +78,16 @@ class Meta
         }
         $this->connection = $conn;
         return $this;
+    }
+
+    /**
+     * Returns the connection instance from the ConnectionManager
+     *
+     * @return  \Doctrine\DBAL\Connection
+     */
+    public function connectionInstance()
+    {
+        return ConnectionManager::instance()->connection($this->connection);
     }
 
     /**

@@ -1,4 +1,3 @@
-- Passing translations for errors
 - Relationships
 - DocBlocks
 - Documentation! Yay!

@@ -315,16 +315,18 @@ abstract class Model
      *  ]);
      *
      *
-     * @param   array   $extra  Extra validation rules.
+     * @param   array   $extra      Extra validation rules.
+     * @param   string  $lang       Language to use for validation (default en)
+     * @param   string  $langDir    Directory containing translations (@see valitron structure)
      * @return  bool
      * @throws  ValidationException
      */
-    public function validate(array $extra = [])
+    public function validate(array $extra = [], $lang = 'en', $langDir = null)
     {
         $input = array_replace_recursive($this->original, $this->changed);
         $input = $this->prepareDataForSave($input);
 
-        $v = new Validator($input);
+        $v = new Validator($input, [], $lang, $langDir);
 
         $fields = $this->meta->fields();
         foreach ($fields as $name => $field) {

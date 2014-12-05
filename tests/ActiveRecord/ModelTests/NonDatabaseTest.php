@@ -244,4 +244,26 @@ class NonDatabaseTest extends \PHPUnit_Framework_TestCase
             ]
         ]);
     }
+
+    public function testValidationI18nWithoutLang()
+    {
+        $object = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\UserValidated');
+        try {
+            $object->validate();
+        } catch (ValidationException $e) {
+            $messages = $e->getMessages();
+            $this->assertEquals('Name is required', $messages['name'][0]);
+        }
+    }
+
+    public function testValidationI18nWithLang()
+    {
+        $object = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\UserValidated');
+        try {
+            $object->validate([], 'fr', __DIR__.'/../lang');
+        } catch (ValidationException $e) {
+            $messages = $e->getMessages();
+            $this->assertEquals('Name is required [in French]', $messages['name'][0]);
+        }
+    }
 }

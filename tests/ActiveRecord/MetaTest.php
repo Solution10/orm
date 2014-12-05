@@ -58,4 +58,29 @@ class MetaTest extends \PHPUnit_Framework_TestCase
         $meta = new Meta('MyApp\\Models\\User');
         $this->assertNull($meta->field('unknown'));
     }
+
+    public function testSetGetRelationships()
+    {
+        $meta = new Meta('MyApp\\Models\\User');
+        $this->assertEquals([], $meta->relationships());
+        $this->assertEquals(null, $meta->relationship('posts'));
+
+        $this->assertEquals($meta, $meta->relationship('posts', 'hasMany', 'BlogPost', ['query' => 'blah']));
+        $this->assertEquals([
+            'type' => 'hasMany',
+            'name' => 'posts',
+            'model' => 'BlogPost',
+            'options' => ['query' => 'blah']
+        ], $meta->relationship('posts'));
+    }
+
+    /**
+     * @expectedException       \Solution10\ORM\ActiveRecord\Exception\MetaException
+     * @expectedExceptionCode   \Solution10\ORM\ActiveRecord\Exception\MetaException::UNKNOWN_RELATIONSHIP
+     */
+    public function testBadRelationshipType()
+    {
+        $meta = new Meta('MyApp\\Models\\User');
+        $meta->relationship('bad', 'hasAll', 'BlogPost');
+    }
 }

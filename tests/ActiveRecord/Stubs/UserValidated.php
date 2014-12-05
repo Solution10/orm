@@ -19,6 +19,8 @@ class UserValidated extends Model
                 ]
             ]))
             ->field('about', new Field\Text)
+
+            ->relationship('posts', 'hasMany', 'BlogPost')
         ;
     }
 }

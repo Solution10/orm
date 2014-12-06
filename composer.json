@@ -1,6 +1,6 @@
 {
     "name": "solution10/orm",
-    "description": "Powerful, validating, Active Record style ORM.",
+    "description": "Powerful, validating, Active Record style ORM. (Not ready for production use!)",
     "minimum-stability": "stable",
     "keywords": ["component", "orm", "database", "active record"],
     "license": "MIT",

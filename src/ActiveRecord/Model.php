@@ -325,6 +325,7 @@ abstract class Model
         $input = $this->prepareDataForSave($input);
 
         $v = new Validator($input, [], $lang, $langDir);
+        $v = self::validatorHook($v);
 
         $fields = $this->meta->fields();
         foreach ($fields as $name => $field) {
@@ -357,6 +358,18 @@ abstract class Model
             throw $e;
         }
         return true;
+    }
+
+    /**
+     * Hook for adding in your own custom rules for Valitron. Simply override this function
+     * in a subclass of Model.
+     *
+     * @param   Validator   $v
+     * @return  Validator
+     */
+    public static function validatorHook(Validator $v)
+    {
+        return $v;
     }
 
 

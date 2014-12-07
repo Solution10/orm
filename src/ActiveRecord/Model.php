@@ -9,6 +9,7 @@ abstract class Model
 {
     const SINGLE = 1;
     const MANY = 2;
+    const RAW = 3;
 
     protected $original = array();
     protected $changed = array();
@@ -428,7 +429,7 @@ abstract class Model
      * @param   array   $params     Params to inject into the query
      * @param   array   $types      Parameter type hints for the query
      * @param   int     $return     Return type: self::SINGLE or self::MANY
-     * @return  Model|Resultset
+     * @return  Model|Resultset|array
      */
     public static function query($query, array $params = [], array $types = [], $return = self::MANY)
     {
@@ -447,56 +448,14 @@ abstract class Model
                 $instance->setAsSaved();
             }
             $toReturn = $instance;
-        } else {
+        } elseif ($return === self::MANY) {
             $c = new Resultset($result);
             $c->resultModel($instance);
             $toReturn = $c;
+        } else {
+            $toReturn = $result;
         }
 
         return $toReturn;
-    }
-
-    /**
-     * ---------------- Relationships ---------------------
-     */
-
-    /**
-     * Retrieving items from a relationship
-     *
-     * @param   string  $name   Name of the relationship
-     * @return  Model|Resultset|null
-     */
-    public function fetchRelated($name)
-    {
-        $rel = $this->meta->relationship($name);
-        if (!$rel) {
-            return null;
-        }
-
-        $resultModelClass = $rel['model'];
-        $resultModel = self::factory($resultModelClass);
-        $resultMeta = $resultModel->meta();
-
-        $query = null;
-        $queryParams = [];
-        $returnType = self::SINGLE;
-        switch ($rel['type']) {
-            case 'hasMany':
-                $returnType = self::MANY;
-                if (!array_key_exists('query', $rel)) {
-                    $query = 'SELECT *
-                      FROM '.$resultMeta->table().'
-                      WHERE
-                        '.$resultMeta->table().'.'.$this->meta->tableSingular().'_id = ?
-                    ';
-                    $queryParams = [$this->get($this->meta->primaryKey())];
-                }
-                break;
-        }
-
-        if ($query) {
-            return $resultModelClass::query($query, $queryParams, [], $returnType);
-        }
-        return null;
     }
 }

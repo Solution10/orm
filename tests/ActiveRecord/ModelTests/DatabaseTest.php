@@ -159,22 +159,14 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('Archibald', $results[2]->get('name'));
     }
 
-    /**
-     * ------------------- Relationship Testing ----------------------
-     */
-
-    public function testReadHasMany()
+    public function testRawQueries()
     {
         $this->conn->insert('users', ['name' => 'Alex']);
-        $this->conn->insert('orders', ['user_id' => 1, 'total' => 27.5]);
-        $this->conn->insert('orders', ['user_id' => 1, 'total' => 5.55]);
-        $this->conn->insert('orders', ['user_id' => 27, 'total' => 127.99]);
+        $this->conn->insert('users', ['name' => 'Lucie']);
+        $this->conn->insert('users', ['name' => 'Archibald']);
 
-        $object = UserValidated::findById(1);
-
-        $orders = $object->fetchRelated('orders');
-        $this->assertCount(2, $orders);
-        $this->assertEquals(27.5, $orders[0]->get('total'));
-        $this->assertEquals(5.55, $orders[1]->get('total'));
+        $result = User::query('SELECT COUNT(*) as aggr FROM users', [], [], User::RAW);
+        $this->assertTrue(is_array($result));
+        $this->assertEquals(3, $result[0]['aggr']);
     }
 }

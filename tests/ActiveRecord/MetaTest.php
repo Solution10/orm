@@ -17,6 +17,14 @@ class MetaTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('posts', $meta->table());
     }
 
+    public function testTableSingular()
+    {
+        $meta = new Meta('MyApp\\Models\\User');
+        $meta->table('users');
+
+        $this->assertEquals('user', $meta->tableSingular());
+    }
+
     public function testGetSetConnection()
     {
         $meta = new Meta('MyApp\\Models\\User');

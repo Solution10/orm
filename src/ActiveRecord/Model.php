@@ -29,11 +29,13 @@ abstract class Model
     /**
      * Factory, the easiest way of building models.
      *
-     * @param   string  $className  Class name of the model you want.
+     * @param   string  $className  Class name of the model you want (or null to infer from get_called_class())
      * @return  Model
      */
-    public static function factory($className)
+    public static function factory($className = null)
     {
+        $className = ($className !== null)? $className : get_called_class();
+
         // Build the meta object:
         $meta = new Meta($className);
         $meta = $className::init($meta);

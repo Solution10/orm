@@ -4,6 +4,7 @@ namespace Solution10\ORM\Tests\ActiveRecord\ModelTests;
 
 use Solution10\ORM\ActiveRecord\Exception\ValidationException;
 use Solution10\ORM\ActiveRecord\Model;
+use Solution10\ORM\Tests\ActiveRecord\Stubs\User;
 
 /**
  * These tests focus on the behaviours that don't require a database connection.
@@ -19,6 +20,12 @@ class NonDatabaseTest extends \PHPUnit_Framework_TestCase
     public function testNoInitThrows()
     {
         Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\NoInitModel');
+    }
+
+    public function testInferringFactory()
+    {
+        $m = User::factory();
+        $this->assertInstanceOf('Solution10\ORM\Tests\ActiveRecord\Stubs\User', $m);
     }
 
     public function testSetGetSingle()

@@ -252,6 +252,21 @@ class NonDatabaseTest extends \PHPUnit_Framework_TestCase
         ]);
     }
 
+    /**
+     * @expectedException   \Solution10\ORM\ActiveRecord\Exception\ValidationException
+     */
+    public function testValidatorHook()
+    {
+        $object = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\UserValidated');
+        $object->set('name', 'Alex');
+
+        $object->validate([
+            'name' => [
+                ['testHook']
+            ]
+        ]);
+    }
+
     public function testValidationI18nWithoutLang()
     {
         $object = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\UserValidated');

@@ -328,7 +328,8 @@ abstract class Model
         $input = $this->prepareDataForSave($input);
 
         $v = new Validator($input, [], $lang, $langDir);
-        $v = self::validatorHook($v);
+        $class = get_called_class();
+        $v = $class::validatorHook($v);
 
         $fields = $this->meta->fields();
         foreach ($fields as $name => $field) {

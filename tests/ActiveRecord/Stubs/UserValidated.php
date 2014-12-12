@@ -5,6 +5,7 @@ namespace Solution10\ORM\Tests\ActiveRecord\Stubs;
 use Solution10\ORM\ActiveRecord\Model;
 use Solution10\ORM\ActiveRecord\Meta;
 use Solution10\ORM\ActiveRecord\Field;
+use Valitron\Validator;
 
 class UserValidated extends Model
 {
@@ -23,5 +24,13 @@ class UserValidated extends Model
             ->relationship('posts', 'hasMany', 'BlogPost')
             ->relationship('orders', 'hasMany', 'Solution10\\ORM\\Tests\\ActiveRecord\\Stubs\\Order')
         ;
+    }
+
+    public static function validatorHook(Validator $v)
+    {
+        $v->addRule('testHook', function ($field, $value, array $params) {
+            return false;
+        });
+        return $v;
     }
 }

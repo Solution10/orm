@@ -94,6 +94,21 @@ abstract class Model
     }
 
     /**
+     * Sets data on the model without using the set() callbacks on the
+     * fields.
+     *
+     * @param   array   $data
+     * @return  $this
+     */
+    public function setRaw(array $data)
+    {
+        foreach ($data as $key => $value) {
+            $this->changed[$key] = $value;
+        }
+        return $this;
+    }
+
+    /**
      * Gets a value out of the object. Will return the 'newest' value for this possible,
      * so if you load from a Repo, but change the value, this function returns the new value
      * that you set. To get the old value, use original(). You can also pass a default if you want.
@@ -447,7 +462,7 @@ abstract class Model
 
         if ($return === self::SINGLE) {
             if (count($result) > 0) {
-                $instance->set($result[0]);
+                $instance->setRaw($result[0]);
                 $instance->setAsSaved();
             }
             $toReturn = $instance;

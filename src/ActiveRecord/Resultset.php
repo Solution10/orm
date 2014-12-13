@@ -49,7 +49,7 @@ class Resultset extends Collection
     {
         if (!array_key_exists($index, $this->built)) {
             $instance = clone $this->protoModel;
-            $instance->set($item);
+            $instance->setRaw($item);
             $instance->setAsSaved();
             $this->built[$index] = $instance;
         }

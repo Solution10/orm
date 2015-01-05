@@ -36,8 +36,10 @@ class DateTime extends Field
         if (is_numeric($value)) {
             $dt = new NativeDateTime(null, $this->options['timezone']);
             $dt->setTimestamp($value);
-        } else {
+        } elseif ($value !== null) {
             $dt = new NativeDateTime($value, $this->options['timezone']);
+        } else {
+            $dt = $value;
         }
 
         return $dt;
@@ -64,6 +66,10 @@ class DateTime extends Field
         }
 
         // Now format it if needs be and return
+        if ($valueDT === null) {
+            return $valueDT;
+        }
+
         return ($format)? $valueDT->format($format) : $valueDT->getTimestamp();
     }
 }

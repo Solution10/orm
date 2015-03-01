@@ -17,12 +17,12 @@ class RepoManager
     /**
      * @var \Closure[]
      */
-    protected $repos;
+    protected $repos = [];
 
     /**
      * @var Repo[]
      */
-    protected $builtRepos;
+    protected $builtRepos = [];
 
     /**
      * Register a new Repo instance with the manager. This is done through a

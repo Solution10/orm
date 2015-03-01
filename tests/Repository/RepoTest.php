@@ -14,7 +14,7 @@ class RepoTest extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Solution10\ORM\Tests\Repository\Stubs\UsersRepo', $repo);
     }
 
-    public function testRepoManager()
+    public function testGetSetRepoManager()
     {
         $repoManager = new RepoManager();
         $repo = new UsersRepo();

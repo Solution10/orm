@@ -15,6 +15,9 @@
 		<testsuite name="ORM Tests">
 			<directory>./tests</directory>
 		</testsuite>
+        <testsuite name="SQL Tests">
+            <directory>./tests/SQL</directory>
+        </testsuite>
 	</testsuites>
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">

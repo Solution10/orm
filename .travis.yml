@@ -9,6 +9,7 @@ php:
   - 5.6
   - 7
   - hhvm
+  - hhvm-nightly
 
 install:
   - composer self-update
@@ -21,7 +22,7 @@ script:
 
 matrix:
   allow_failures:
-    - php: hhvm
+    - php: hhvm-nightly
 
 after_script:
   - php vendor/bin/coveralls

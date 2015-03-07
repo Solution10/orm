@@ -5,79 +5,79 @@ namespace Solution10\ORM\Tests\SQL;
 use PHPUnit_Framework_TestCase;
 use Solution10\ORM\SQL\ConditionBuilder;
 
-class WhereTest extends PHPUnit_Framework_TestCase
+class HavingTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * @return \Solution10\ORM\SQL\Where
+     * @return \Solution10\ORM\SQL\Having
      */
-    protected function whereObject()
+    protected function havingObject()
     {
-        return $this->getMockForTrait('Solution10\\ORM\\SQL\\Where');
+        return $this->getMockForTrait('Solution10\\ORM\\SQL\\Having');
     }
 
-    public function testNoWhere()
+    public function testNoHaving()
     {
-        $w = $this->whereObject();
-        $this->assertEquals('', $w->buildWhereSQL());
+        $w = $this->havingObject();
+        $this->assertEquals('', $w->buildHavingSQL());
 
         // Test return type:
-        $this->assertEquals([], $w->where());
+        $this->assertEquals([], $w->having());
     }
 
-    public function testSimpleWhere()
+    public function testSimpleHaving()
     {
-        $w = $this->whereObject();
-        $this->assertEquals($w, $w->where('name', '=', 'Alex'));
-        $this->assertEquals('WHERE name = ?', $w->buildWhereSQL());
-        $this->assertEquals(['Alex'], $w->getWhereParams());
+        $w = $this->havingObject();
+        $this->assertEquals($w, $w->having('name', '=', 'Alex'));
+        $this->assertEquals('HAVING name = ?', $w->buildHavingSQL());
+        $this->assertEquals(['Alex'], $w->getHavingParams());
 
         // Test return type:
-        $where = $w->where();
-        $this->assertCount(1, $where);
+        $having = $w->having();
+        $this->assertCount(1, $having);
         $this->assertEquals([
             'join' => 'AND',
             'field' => 'name',
             'operator' => '=',
             'value' => 'Alex'
-        ], $where[0]);
+        ], $having[0]);
     }
 
     public function testSimpleOR()
     {
-        $w = $this->whereObject();
-        $w->where('name', '=', 'Alex')
-            ->orWhere('name', '=', 'Alexander');
+        $w = $this->havingObject();
+        $w->having('name', '=', 'Alex')
+            ->orHaving('name', '=', 'Alexander');
 
-        $this->assertEquals('WHERE name = ? OR name = ?', $w->buildWhereSQL());
-        $this->assertEquals(['Alex', 'Alexander'], $w->getWhereParams());
+        $this->assertEquals('HAVING name = ? OR name = ?', $w->buildHavingSQL());
+        $this->assertEquals(['Alex', 'Alexander'], $w->getHavingParams());
 
         // Test return type:
-        $where = $w->where();
-        $this->assertCount(2, $where);
+        $having = $w->having();
+        $this->assertCount(2, $having);
         $this->assertEquals([
             'join' => 'AND',
             'field' => 'name',
             'operator' => '=',
             'value' => 'Alex'
-        ], $where[0]);
+        ], $having[0]);
 
         $this->assertEquals([
             'join' => 'OR',
             'field' => 'name',
             'operator' => '=',
             'value' => 'Alexander'
-        ], $where[1]);
+        ], $having[1]);
     }
 
     public function testOnlyOR()
     {
-        $w = $this->whereObject();
-        $w->orWhere('name', '=', 'Alex');
+        $w = $this->havingObject();
+        $w->orHaving('name', '=', 'Alex');
 
-        $this->assertEquals('WHERE name = ?', $w->buildWhereSQL());
-        $this->assertEquals(['Alex'], $w->getWhereParams());
+        $this->assertEquals('HAVING name = ?', $w->buildHavingSQL());
+        $this->assertEquals(['Alex'], $w->getHavingParams());
 
-        $where = $w->orWhere();
+        $where = $w->orHaving();
         $this->assertEquals([
             'join' => 'OR',
             'field' => 'name',
@@ -88,17 +88,17 @@ class WhereTest extends PHPUnit_Framework_TestCase
 
     public function testSimpleGroup()
     {
-        $w = $this->whereObject();
-        $w->where('name', '=', 'Alex');
-        $w->where(function (ConditionBuilder $q) {
+        $w = $this->havingObject();
+        $w->having('name', '=', 'Alex');
+        $w->having(function (ConditionBuilder $q) {
             $q->andWith('city', '=', 'London');
             $q->orWith('city', '=', 'Toronto');
         });
 
-        $this->assertEquals('WHERE name = ? AND (city = ? OR city = ?)', $w->buildWhereSQL());
-        $this->assertEquals(['Alex', 'London', 'Toronto'], $w->getWhereParams());
+        $this->assertEquals('HAVING name = ? AND (city = ? OR city = ?)', $w->buildHavingSQL());
+        $this->assertEquals(['Alex', 'London', 'Toronto'], $w->getHavingParams());
 
-        $where = $w->where();
+        $having = $w->having();
         $this->assertEquals([
             ['join' => 'AND', 'field' => 'name', 'operator' => '=', 'value' => 'Alex'],
             [
@@ -108,25 +108,25 @@ class WhereTest extends PHPUnit_Framework_TestCase
                     ['join' => 'OR', 'field' => 'city', 'operator' => '=', 'value' => 'Toronto']
                 ]
             ]
-        ], $where);
+        ], $having);
     }
 
     /**
-     * Time for a final, large and complex query to test the where() and orWhere() clauses.
+     * Time for a final, large and complex query to test the having() and orHaving() clauses.
      */
-    public function testWhereComplex()
+    public function testHavingComplex()
     {
-        $w = $this->whereObject();
+        $w = $this->havingObject();
 
         $w
-            ->where('name', '=', 'Alex')
-            ->orWhere('name', '=', 'Lucie')
-            ->where(function (ConditionBuilder $query) {
+            ->having('name', '=', 'Alex')
+            ->orHaving('name', '=', 'Lucie')
+            ->having(function (ConditionBuilder $query) {
                 $query
                     ->andWith('city', '=', 'London')
                     ->andWith('country', '=', 'GB');
             })
-            ->orWhere(function (ConditionBuilder $query) {
+            ->orHaving(function (ConditionBuilder $query) {
                 $query
                     ->andWith('city', '=', 'Toronto')
                     ->andWith('country', '=', 'CA')
@@ -136,17 +136,17 @@ class WhereTest extends PHPUnit_Framework_TestCase
             });
 
         $this->assertEquals(
-            'WHERE name = ? OR name = ? AND (city = ? AND country = ?) OR (city = ? AND country = ? OR (active != ?))',
-            $w->buildWhereSQL()
+            'HAVING name = ? OR name = ? AND (city = ? AND country = ?) OR (city = ? AND country = ? OR (active != ?))',
+            $w->buildHavingSQL()
         );
         $this->assertEquals(
             ['Alex', 'Lucie', 'London', 'GB', 'Toronto', 'CA', true],
-            $w->getWhereParams()
+            $w->getHavingParams()
         );
 
         // Check the return types:
-        $where = $w->where();
-        $this->assertCount(4, $where);
+        $having = $w->having();
+        $this->assertCount(4, $having);
         $this->assertEquals([
             ['join' => 'AND', 'field' => 'name', 'operator' => '=', 'value' => 'Alex'],
             ['join' => 'OR', 'field' => 'name', 'operator' => '=', 'value' => 'Lucie'],
@@ -170,6 +170,6 @@ class WhereTest extends PHPUnit_Framework_TestCase
                     ]
                 ]
             ]
-        ], $where);
+        ], $having);
     }
 }

@@ -228,6 +228,16 @@ class SelectTest extends PHPUnit_Framework_TestCase
     }
 
     /*
+     * ------------------- HAVING testing -------------------------
+     */
+
+    public function testHavingSimple()
+    {
+        $query = new Select;
+        $this->assertEquals([], $query->having());
+    }
+
+    /*
      * ------------------ ORDER BY testing -------------------------
      */
 

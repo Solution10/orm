@@ -3,39 +3,42 @@
 namespace Solution10\ORM\SQL;
 
 /**
- * Where
+ * Having
  *
- * Adds in where(), orWhere() and groupings
+ * Adds in having(), orHaving() and groupings
  * into the SQL builder.
  *
- *      $query->where(function(ConditionBuilder $conditions) {
+ *      $query->having(function(ConditionBuilder $conditions) {
  *          $conditions
  *              ->andWith('user', '=', 'Alex')
  *              ->andWith('country', '=', 'GB');
  *      })
- *      ->orWhere(function(Conditions $conditions) {
+ *      ->orHaving(function(ConditionBuilder $conditions) {
  *          $conditions->andWith('user', '=', 'Lucie');
  *          $conditions->andWith('country', '=', 'CA');
  *      });
  *
  * Would generate:
  *
- *      WHERE (name = 'Alex' AND country = 'GB')
+ *      HAVING (name = 'Alex' AND country = 'GB')
  *      OR (name = 'Lucie' AND country = 'CA')
+ *
+ * Unlike While, this trait is only used once in the Select query type
+ * however it's of sufficient complexity to warrant it being split out.
  *
  * @package     Solution10\ORM\SQL
  * @author      Alex Gisby<alex@solution10.com>
  * @license     MIT
  */
-trait Where
+trait Having
 {
     /**
      * @var     ConditionBuilder
      */
-    protected $whereBuilder;
+    protected $havingBuilder;
 
     /**
-     * Get/Set an "AND WHERE" clause on the query. You can either pass a simple
+     * Get/Set an "AND HAVING" clause on the query. You can either pass a simple
      * comparison ('name', '=', 'Alex') or a function to append multiple queries
      * in a group.
      *
@@ -44,35 +47,35 @@ trait Where
      * @param   mixed|null              $value      Value to test against
      * @return  $this|array                         $this on set, array on get
      */
-    public function where($field = null, $operator = null, $value = null)
+    public function having($field = null, $operator = null, $value = null)
     {
-        if (!isset($this->whereBuilder)) {
-            $this->whereBuilder = new ConditionBuilder();
+        if (!isset($this->havingBuilder)) {
+            $this->havingBuilder = new ConditionBuilder();
         }
         if ($field == null) {
-            return $this->whereBuilder->conditions();
+            return $this->havingBuilder->conditions();
         }
-        $this->whereBuilder->andWith($field, $operator, $value);
+        $this->havingBuilder->andWith($field, $operator, $value);
         return $this;
     }
 
     /**
-     * Adds a new 'OR ' predicate to the query.
+     * Adds a new 'OR' predicate to the query.
      *
      * @param   string|\Closure|null    $field      Fieldname|callback for group|to return
      * @param   string|null             $operator   Operator (=, !=, <>, <= etc)
      * @param   mixed|null              $value      Value to test against
      * @return  $this|array                         $this on set, array on get
      */
-    public function orWhere($field = null, $operator = null, $value = null)
+    public function orHaving($field = null, $operator = null, $value = null)
     {
-        if (!isset($this->whereBuilder)) {
-            $this->whereBuilder = new ConditionBuilder();
+        if (!isset($this->havingBuilder)) {
+            $this->havingBuilder = new ConditionBuilder();
         }
         if ($field == null) {
-            return $this->whereBuilder->conditions();
+            return $this->havingBuilder->conditions();
         }
-        $this->whereBuilder->orWith($field, $operator, $value);
+        $this->havingBuilder->orWith($field, $operator, $value);
         return $this;
     }
 
@@ -81,23 +84,23 @@ trait Where
      *
      * @return  string
      */
-    public function buildWhereSQL()
+    public function buildHavingSQL()
     {
-        if (!isset($this->whereBuilder) || !$this->whereBuilder->hasConditions()) {
+        if (!isset($this->havingBuilder) || !$this->havingBuilder->hasConditions()) {
             return '';
         }
 
-        return 'WHERE '.$this->whereBuilder->buildConditionSQL();
+        return 'HAVING '.$this->havingBuilder->buildConditionSQL();
     }
 
     /**
-     * Returns an array of all the parameter that have been passed to where()
+     * Returns an array of all the parameter that have been passed to having()
      * ready to be thrown at PDO.
      *
      * @return  array
      */
-    public function getWhereParams()
+    public function getHavingParams()
     {
-        return $this->whereBuilder->getConditionParameters();
+        return $this->havingBuilder->getConditionParameters();
     }
 }

@@ -14,6 +14,7 @@ namespace Solution10\ORM\SQL;
 class Select
 {
     use Where;
+    use Having;
     use Paginate;
 
     /**
@@ -35,6 +36,11 @@ class Select
      * @var     array
      */
     protected $groupBy = [];
+
+    /**
+     * @var     NestedWhere
+     */
+    protected $having;
 
     /**
      * @var     array
@@ -191,22 +197,6 @@ class Select
         }
 
         return 'GROUP BY '.implode(', ', $this->groupBy);
-    }
-
-    /**
-     * Get/Set the having clause
-     *
-     * @param   string|null     $having     String to set, null to get
-     * @return  $this|string|null
-     */
-    public function having($having = null)
-    {
-        if ($having === null) {
-            return (array_key_exists('HAVING', $this->parts))? $this->parts['HAVING'] : null;
-        }
-
-        $this->parts['HAVING'] = $having;
-        return $this;
     }
 
     /**

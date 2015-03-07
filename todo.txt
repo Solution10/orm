@@ -1,3 +1,19 @@
+Active Record
+-----------------------
 - Relationships
 - DocBlocks
 - Documentation! Yay!
+
+
+Repos
+-----------------------
+- Lots
+
+SQL
+-----------------------
+- Split into separate package?
+- Make everything additive (looking at you select()) and add resetXXX() functions
+- UPDATE
+- CREATE
+- DELETE
+- Table SQL? CREATE TABLE, ALTER et al?

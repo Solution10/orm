@@ -12,7 +12,7 @@ class SelectTest extends PHPUnit_Framework_TestCase
      */
     public function testSelect()
     {
-        $query = new Select('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
+        $query = new Select;
 
         // No alias
         $this->assertEquals($query, $query->select('id'));
@@ -179,6 +179,52 @@ class SelectTest extends PHPUnit_Framework_TestCase
             'JOIN posts ON users.id = posts.user_id LEFT JOIN comments ON users.id = comments.user_id',
             $query->buildJoinSQL()
         );
+    }
+
+    /*
+     * ------------------ GROUP BY testing ---------------------
+     */
+
+    public function testGroupBy()
+    {
+        $query = new Select;
+        $this->assertEquals([], $query->groupBy());
+
+        $query = new Select;
+        $this->assertEquals($query, $query->groupBy('name'));
+        $this->assertEquals(['name'], $query->groupBy());
+
+        $query = new Select;
+        $query
+            ->groupBy('name')
+            ->groupBy('age');
+
+        $this->assertEquals(['name', 'age'], $query->groupBy());
+
+        $query = new Select;
+        $query->groupBy(['name', 'age']);
+        $this->assertEquals(['name', 'age'], $query->groupBy());
+    }
+
+    public function testGroupBySQL()
+    {
+        $query = new Select;
+        $this->assertEquals('', $query->buildGroupBySQL());
+
+        $query = new Select;
+        $query->groupBy('name');
+        $this->assertEquals('GROUP BY name', $query->buildGroupBySQL());
+
+        $query = new Select;
+        $query
+            ->groupBy('name')
+            ->groupBy('age');
+
+        $this->assertEquals('GROUP BY name, age', $query->buildGroupBySQL());
+
+        $query = new Select;
+        $query->groupBy(['name', 'age']);
+        $this->assertEquals('GROUP BY name, age', $query->buildGroupBySQL());
     }
 
     /*

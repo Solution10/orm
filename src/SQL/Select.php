@@ -34,6 +34,11 @@ class Select
     /**
      * @var     array
      */
+    protected $groupBy = [];
+
+    /**
+     * @var     array
+     */
     protected $orderBy = [];
 
     /**
@@ -154,6 +159,54 @@ class Select
         }
 
         return trim(implode(' ', $joins));
+    }
+
+    /**
+     * Set/Get the group by clause
+     *
+     * @param   string|array|null     $clause     String or array to set, null to get
+     * @return  $this|string|array
+     */
+    public function groupBy($clause = null)
+    {
+        if ($clause === null) {
+            return $this->groupBy;
+        }
+
+        $clause = (is_array($clause))? $clause : [$clause];
+        $this->groupBy = array_merge($this->groupBy, $clause);
+
+        return $this;
+    }
+
+    /**
+     * Builds the SQL for a GROUP BY statement
+     *
+     * @return  string
+     */
+    public function buildGroupBySQL()
+    {
+        if (empty($this->groupBy)) {
+            return '';
+        }
+
+        return 'GROUP BY '.implode(', ', $this->groupBy);
+    }
+
+    /**
+     * Get/Set the having clause
+     *
+     * @param   string|null     $having     String to set, null to get
+     * @return  $this|string|null
+     */
+    public function having($having = null)
+    {
+        if ($having === null) {
+            return (array_key_exists('HAVING', $this->parts))? $this->parts['HAVING'] : null;
+        }
+
+        $this->parts['HAVING'] = $having;
+        return $this;
     }
 
     /**

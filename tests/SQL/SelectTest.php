@@ -176,7 +176,7 @@ class SelectTest extends PHPUnit_Framework_TestCase
         $query->join('users', 'posts', 'users.id = posts.user_id');
         $query->join('users', 'comments', 'users.id = comments.user_id', 'LEFT');
         $this->assertEquals(
-            'JOIN posts ON users.id = posts.user_id LEFT JOIN comments ON users.id = comments.user_id',
+            "JOIN posts ON users.id = posts.user_id\nLEFT JOIN comments ON users.id = comments.user_id",
             $query->buildJoinSQL()
         );
     }
@@ -286,5 +286,151 @@ class SelectTest extends PHPUnit_Framework_TestCase
             'age'   => 'DESC'
         ]);
         $this->assertEquals('ORDER BY name ASC, age DESC', $query->buildOrderBySQL());
+    }
+
+    /*
+     * ------------------ SQL string testing ------------------
+     */
+
+    public function testBasicStatement()
+    {
+        $q = new Select();
+        $q->select('*')
+            ->from('users');
+
+        $this->assertEquals(
+            'SELECT * FROM users',
+            (string)$q
+        );
+        $this->assertEquals([], $q->params());
+    }
+
+    public function testStatementWithWhere()
+    {
+        $q = new Select();
+        $q->select('*')
+            ->from('users')
+            ->where('name', '=', 'Alex');
+
+        $this->assertEquals(
+            'SELECT * FROM users WHERE name = ?',
+            (string)$q
+        );
+        $this->assertEquals(['Alex'], $q->params());
+    }
+
+    public function testStatementWithOrder()
+    {
+        $q = new Select();
+        $q->select('*')
+            ->from('users')
+            ->where('name', '=', 'Alex')
+            ->orderBy('created', 'DESC')
+        ;
+
+        $this->assertEquals(
+            'SELECT * FROM users WHERE name = ? ORDER BY created DESC',
+            (string)$q
+        );
+        $this->assertEquals(['Alex'], $q->params());
+    }
+
+    public function testStatementWithLimit()
+    {
+        $q = new Select();
+        $q->select('*')
+            ->from('users')
+            ->where('name', '=', 'Alex')
+            ->orderBy('created', 'DESC')
+            ->limit(10)
+        ;
+
+        $this->assertEquals(
+            'SELECT * FROM users WHERE name = ? ORDER BY created DESC LIMIT 10',
+            (string)$q
+        );
+        $this->assertEquals(['Alex'], $q->params());
+    }
+
+    public function testStatementWithLimitAndOffset()
+    {
+        $q = new Select();
+        $q->select('*')
+            ->from('users')
+            ->where('name', '=', 'Alex')
+            ->orderBy('created', 'DESC')
+            ->limit(10)
+            ->offset(5)
+        ;
+
+        $this->assertEquals(
+            'SELECT * FROM users WHERE name = ? ORDER BY created DESC LIMIT 5, 10',
+            (string)$q
+        );
+        $this->assertEquals(['Alex'], $q->params());
+    }
+
+    public function testStatementWithJoins()
+    {
+        $q = new Select();
+        $q->select('*')
+            ->from('users')
+            ->where('name', '=', 'Alex')
+            ->orderBy('created', 'DESC')
+            ->limit(10)
+            ->offset(5)
+            ->join('users', 'comments', 'users.id = comments.user_id', 'LEFT')
+        ;
+
+        $this->assertEquals(
+            'SELECT * FROM users LEFT JOIN comments ON users.id = comments.user_id '
+            .'WHERE name = ? ORDER BY created DESC LIMIT 5, 10',
+            (string)$q
+        );
+        $this->assertEquals(['Alex'], $q->params());
+    }
+
+    public function testStatementWithGroupBy()
+    {
+        $q = new Select();
+        $q->select('*')
+            ->from('users')
+            ->where('name', '=', 'Alex')
+            ->orderBy('created', 'DESC')
+            ->limit(10)
+            ->offset(5)
+            ->join('users', 'comments', 'users.id = comments.user_id', 'LEFT')
+            ->groupBy('comments.user_id')
+        ;
+
+        $this->assertEquals(
+            'SELECT * FROM users LEFT JOIN comments ON users.id = comments.user_id '
+            .'WHERE name = ? GROUP BY comments.user_id ORDER BY created DESC LIMIT 5, 10',
+            (string)$q
+        );
+        $this->assertEquals(['Alex'], $q->params());
+    }
+
+    public function testStatementWithHaving()
+    {
+        $q = new Select();
+        $q->select('*')
+            ->from('users')
+            ->where('name', '=', 'Alex')
+            ->orderBy('created', 'DESC')
+            ->limit(10)
+            ->offset(5)
+            ->join('users', 'comments', 'users.id = comments.user_id', 'LEFT')
+            ->groupBy('comments.user_id')
+            ->having('COUNT(comments.user_id)', '>', 10)
+        ;
+
+        $this->assertEquals(
+            'SELECT * FROM users LEFT JOIN comments ON users.id = comments.user_id '
+            .'WHERE name = ? GROUP BY comments.user_id HAVING COUNT(comments.user_id) > ? '
+            .'ORDER BY created DESC LIMIT 5, 10',
+            (string)$q
+        );
+        $this->assertEquals(['Alex', 10], $q->params());
     }
 }

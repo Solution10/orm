@@ -164,7 +164,7 @@ class Select
             $joins[] = $join;
         }
 
-        return trim(implode(' ', $joins));
+        return trim(implode("\n", $joins));
     }
 
     /**
@@ -240,5 +240,56 @@ class Select
         }
 
         return 'ORDER BY '.implode(', ', $parts);
+    }
+
+    /**
+     * Generates the full SQL statement for this query with all the composite parts.
+     * Note: there is no guarantee that this will be valid SQL! Obviously the parts
+     * you've given will come out good, but if you forget to add a FROM or something,
+     * this class won't automatically guess one for you!
+     *
+     * @return  string
+     */
+    public function sql()
+    {
+        $candidateParts = [
+            $this->buildSelectSQL(),
+            $this->buildFromSQL(),
+            $this->buildJoinSQL(),
+            $this->buildWhereSQL(),
+            $this->buildGroupBySQL(),
+            $this->buildHavingSQL(),
+            $this->buildOrderBySQL(),
+            $this->buildPaginateSQL()
+        ];
+
+        $realParts = [];
+        foreach ($candidateParts as $p) {
+            if ($p != '') {
+                $realParts[] = $p;
+            }
+        }
+
+        return implode(" ", $realParts);
+    }
+
+    /**
+     * Serves as a shortcut for sql()
+     *
+     * @return  string
+     */
+    public function __toString()
+    {
+        return $this->sql();
+    }
+
+    /**
+     * Returns all the parameters, in the correct order, to pass into PDO.
+     *
+     * @return  array
+     */
+    public function params()
+    {
+        return array_merge($this->getWhereParams(), $this->getHavingParams());
     }
 }

@@ -98,6 +98,6 @@ trait Where
      */
     public function getWhereParams()
     {
-        return $this->whereBuilder->getConditionParameters();
+        return (isset($this->whereBuilder))? $this->whereBuilder->getConditionParameters() : [];
     }
 }

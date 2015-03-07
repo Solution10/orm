@@ -101,6 +101,6 @@ trait Having
      */
     public function getHavingParams()
     {
-        return $this->havingBuilder->getConditionParameters();
+        return (isset($this->havingBuilder))? $this->havingBuilder->getConditionParameters() : [];
     }
 }

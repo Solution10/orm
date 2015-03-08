@@ -10,3 +10,7 @@ report/
 vendor/
 apigen.neon
 tests/ActiveRecord/tests.db
+
+# Testing files @TODO remove these for 1.0
+testing.php
+repo-usage.php

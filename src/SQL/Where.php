@@ -100,4 +100,16 @@ trait Where
     {
         return (isset($this->whereBuilder))? $this->whereBuilder->getConditionParameters() : [];
     }
+
+    /**
+     * Resets the WHERE portion of this query to empty.
+     *
+     * @return  $this
+     */
+    public function resetWhere()
+    {
+        unset($this->whereBuilder);
+        $this->whereBuilder = new ConditionBuilder();
+        return $this;
+    }
 }

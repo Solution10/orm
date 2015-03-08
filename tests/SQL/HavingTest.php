@@ -172,4 +172,17 @@ class HavingTest extends PHPUnit_Framework_TestCase
             ]
         ], $having);
     }
+
+    public function testResetHaving()
+    {
+        $w = $this->havingObject();
+
+        $w->having('name', '=', 'Alex');
+        $w->having('age', '>', 18);
+        $this->assertCount(2, $w->having());
+
+        $this->assertEquals($w, $w->resetHaving());
+        $this->assertEquals([], $w->having());
+        $this->assertEquals([], $w->getHavingParams());
+    }
 }

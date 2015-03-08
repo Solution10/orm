@@ -103,4 +103,16 @@ trait Having
     {
         return (isset($this->havingBuilder))? $this->havingBuilder->getConditionParameters() : [];
     }
+
+    /**
+     * Resets the HAVING portion of this query to empty.
+     *
+     * @return  $this
+     */
+    public function resetHaving()
+    {
+        unset($this->havingBuilder);
+        $this->havingBuilder = new ConditionBuilder();
+        return $this;
+    }
 }

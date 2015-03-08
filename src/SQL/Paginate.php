@@ -17,7 +17,7 @@ trait Paginate
     /**
      * @var     int     Limit or results per page
      */
-    protected $limit;
+    protected $limit = null;
 
     /**
      * @var     int     Offset
@@ -63,13 +63,32 @@ trait Paginate
      */
     public function buildPaginateSQL()
     {
-        if (!isset($this->limit)) {
+        if ($this->limit === null) {
             return '';
         }
 
-//        $ret = $this->limit;
-//        $ret = ($this->offset != 0)? $this->offset.', '.$ret : $ret;
-
         return 'LIMIT '.(($this->offset != 0)? $this->offset.', '.$this->limit : $this->limit);
+    }
+
+    /**
+     * Resets the LIMIT portion of this query to none.
+     *
+     * @return  $this
+     */
+    public function resetLimit()
+    {
+        $this->limit = null;
+        return $this;
+    }
+
+    /**
+     * Resets the OFFSET portion of this query to 0.
+     *
+     * @return  $this
+     */
+    public function resetOffset()
+    {
+        $this->offset = 0;
+        return $this;
     }
 }

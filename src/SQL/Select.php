@@ -20,7 +20,7 @@ class Select
     /**
      * @var     array
      */
-    protected $selectColumns = ['*'];
+    protected $selectColumns = [];
 
     /**
      * @var     array
@@ -38,14 +38,13 @@ class Select
     protected $groupBy = [];
 
     /**
-     * @var     NestedWhere
-     */
-    protected $having;
-
-    /**
      * @var     array
      */
     protected $orderBy = [];
+
+    /*
+     * ------------------ SELECT ---------------------
+     */
 
     /**
      * Set/Get the Select columns.
@@ -63,7 +62,7 @@ class Select
             $columns = [$columns];
         }
 
-        $this->selectColumns = $columns;
+        $this->selectColumns = array_merge($this->selectColumns, $columns);
         return $this;
     }
 
@@ -74,12 +73,31 @@ class Select
      */
     public function buildSelectSQL()
     {
+        if (empty($this->selectColumns)) {
+            return '';
+        }
+
         $parts = [];
         foreach ($this->selectColumns as $key => $value) {
             $parts[] = (is_integer($key))? $value : $key.' AS '.$value;
         }
         return 'SELECT '.implode(', ', $parts);
     }
+
+    /**
+     * Resets the SELECT portion of this query to empty.
+     *
+     * @return  $this
+     */
+    public function resetSelect()
+    {
+        $this->selectColumns = [];
+        return $this;
+    }
+
+    /*
+     * ----------------- FROM --------------------
+     */
 
     /**
      * Get/Set Table to pull from.
@@ -114,6 +132,21 @@ class Select
         }
         return 'FROM '.implode(', ', $parts);
     }
+
+    /**
+     * Resets the FROM portion of this query to empty.
+     *
+     * @return  $this
+     */
+    public function resetFrom()
+    {
+        $this->fromTables = [];
+        return $this;
+    }
+
+    /*
+     * ------------------ JOIN -----------------------
+     */
 
     /**
      * Sets/Gets a JOIN.
@@ -168,6 +201,21 @@ class Select
     }
 
     /**
+     * Resets the JOIN portion of this query to empty.
+     *
+     * @return  $this
+     */
+    public function resetJoins()
+    {
+        $this->joins = [];
+        return $this;
+    }
+
+    /*
+     * ------------------ GROUP BY -------------------
+     */
+
+    /**
      * Set/Get the group by clause
      *
      * @param   string|array|null     $clause     String or array to set, null to get
@@ -198,6 +246,21 @@ class Select
 
         return 'GROUP BY '.implode(', ', $this->groupBy);
     }
+
+    /**
+     * Resets the GROUP BY portion of this query to empty.
+     *
+     * @return  $this
+     */
+    public function resetGroupBy()
+    {
+        $this->groupBy = [];
+        return $this;
+    }
+
+    /*
+     * ---------------- ORDER BY ----------------------
+     */
 
     /**
      * Set/Get the ORDER BY component of the query.
@@ -241,6 +304,21 @@ class Select
 
         return 'ORDER BY '.implode(', ', $parts);
     }
+
+    /**
+     * Resets the ORDER BY portion of this query to empty.
+     *
+     * @return  $this
+     */
+    public function resetOrderBy()
+    {
+        $this->orderBy = [];
+        return $this;
+    }
+
+    /*
+     * --------------- Generating SQL --------------------
+     */
 
     /**
      * Generates the full SQL statement for this query with all the composite parts.

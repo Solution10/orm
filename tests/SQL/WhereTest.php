@@ -172,4 +172,17 @@ class WhereTest extends PHPUnit_Framework_TestCase
             ]
         ], $where);
     }
+
+    public function testResetWhere()
+    {
+        $w = $this->whereObject();
+
+        $w->where('name', '=', 'Alex');
+        $w->where('age', '>', 18);
+        $this->assertCount(2, $w->where());
+
+        $this->assertEquals($w, $w->resetWhere());
+        $this->assertEquals([], $w->where());
+        $this->assertEquals([], $w->getWhereParams());
+    }
 }

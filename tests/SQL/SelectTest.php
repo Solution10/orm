@@ -12,21 +12,23 @@ class SelectTest extends PHPUnit_Framework_TestCase
      */
     public function testSelect()
     {
-        $query = new Select;
-
         // No alias
+        $query = new Select;
         $this->assertEquals($query, $query->select('id'));
         $this->assertEquals(['id'], $query->select());
 
         // Aliasing
+        $query = new Select;
         $query->select(['id' => 'my_id']);
         $this->assertEquals(['id' => 'my_id'], $query->select());
 
         // Array, without aliasing
+        $query = new Select;
         $query->select(['id', 'username', 'password']);
         $this->assertEquals(['id', 'username', 'password'], $query->select());
 
         // Array with aliasing
+        $query = new Select;
         $query->select(['id' => 'my_id', 'username' => 'my_username']);
         $this->assertEquals(['id' => 'my_id', 'username' => 'my_username'], $query->select());
     }
@@ -34,19 +36,36 @@ class SelectTest extends PHPUnit_Framework_TestCase
     public function testSelectSQL()
     {
         $query = new Select;
-        $this->assertEquals('SELECT *', $query->buildSelectSQL());
+        $this->assertEquals('', $query->buildSelectSQL());
 
+        $query = new Select;
         $query->select('name');
         $this->assertEquals('SELECT name', $query->buildSelectSQL());
 
+        $query = new Select;
         $query->select(['name', 'age']);
         $this->assertEquals('SELECT name, age', $query->buildSelectSQL());
 
+        $query = new Select;
         $query->select(['name' => 'myname']);
         $this->assertEquals('SELECT name AS myname', $query->buildSelectSQL());
 
+        $query = new Select;
         $query->select(['name' => 'myname', 'age' => 'years_alive']);
         $this->assertEquals('SELECT name AS myname, age AS years_alive', $query->buildSelectSQL());
+    }
+
+    public function testResetSelect()
+    {
+        $query = new Select;
+        $query
+            ->select('name')
+            ->select('age');
+
+        $this->assertEquals(['name', 'age'], $query->select());
+
+        $this->assertEquals($query, $query->resetSelect());
+        $this->assertEquals([], $query->select());
     }
 
     /*
@@ -89,6 +108,19 @@ class SelectTest extends PHPUnit_Framework_TestCase
             ->from('roles', 'r');
 
         $this->assertEquals('FROM users u, roles r', $query->buildFromSQL());
+    }
+
+    public function testResetFrom()
+    {
+        $query = new Select;
+        $query
+            ->from('users')
+            ->from('comments');
+
+        $this->assertEquals(['users' => null, 'comments' => null], $query->from());
+
+        $this->assertEquals($query, $query->resetFrom());
+        $this->assertEquals([], $query->from());
     }
 
     /*
@@ -181,6 +213,18 @@ class SelectTest extends PHPUnit_Framework_TestCase
         );
     }
 
+    public function testResetJoins()
+    {
+        $query = new Select;
+        $query->join('users', 'posts', 'users.id = posts.user_id');
+        $query->join('users', 'comments', 'users.id = comments.user_id', 'LEFT');
+
+        $this->assertCount(2, $query->join());
+
+        $this->assertEquals($query, $query->resetJoins());
+        $this->assertEquals([], $query->join());
+    }
+
     /*
      * ------------------ GROUP BY testing ---------------------
      */
@@ -227,14 +271,17 @@ class SelectTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('GROUP BY name, age', $query->buildGroupBySQL());
     }
 
-    /*
-     * ------------------- HAVING testing -------------------------
-     */
-
-    public function testHavingSimple()
+    public function testResetGroupBy()
     {
         $query = new Select;
-        $this->assertEquals([], $query->having());
+        $query
+            ->groupBy('name')
+            ->groupBy('age');
+
+        $this->assertEquals(['name', 'age'], $query->groupBy());
+
+        $this->assertEquals($query, $query->resetGroupBy());
+        $this->assertEquals([], $query->groupBy());
     }
 
     /*
@@ -286,6 +333,19 @@ class SelectTest extends PHPUnit_Framework_TestCase
             'age'   => 'DESC'
         ]);
         $this->assertEquals('ORDER BY name ASC, age DESC', $query->buildOrderBySQL());
+    }
+
+    public function testResetOrderBy()
+    {
+        $query = new Select;
+        $query
+            ->orderBy('name', 'ASC')
+            ->orderBy('age', 'DESC');
+
+        $this->assertEquals(['name' => 'ASC', 'age' => 'DESC'], $query->orderBy());
+
+        $this->assertEquals($query, $query->resetOrderBy());
+        $this->assertEquals([], $query->orderBy());
     }
 
     /*

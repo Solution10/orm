@@ -493,4 +493,23 @@ class SelectTest extends PHPUnit_Framework_TestCase
         );
         $this->assertEquals(['Alex', 10], $q->params());
     }
+
+    public function testFullReset()
+    {
+        $q = new Select();
+        $q->select('*')
+            ->from('users')
+            ->where('name', '=', 'Alex')
+            ->orderBy('created', 'DESC')
+            ->limit(10)
+            ->offset(5)
+            ->join('users', 'comments', 'users.id = comments.user_id', 'LEFT')
+            ->groupBy('comments.user_id')
+            ->having('COUNT(comments.user_id)', '>', 10)
+        ;
+
+        $this->assertEquals($q, $q->reset());
+        $this->assertEquals('', $q->sql());
+        $this->assertEquals([], $q->params());
+    }
 }

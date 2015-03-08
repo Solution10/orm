@@ -370,4 +370,23 @@ class Select
     {
         return array_merge($this->getWhereParams(), $this->getHavingParams());
     }
+
+    /**
+     * Resets the entire query by calling each sections resetXXX() function.
+     *
+     * @return  $this
+     */
+    public function reset()
+    {
+        return $this
+            ->resetSelect()
+            ->resetFrom()
+            ->resetJoins()
+            ->resetWhere()
+            ->resetGroupBy()
+            ->resetHaving()
+            ->resetOrderBy()
+            ->resetLimit()
+            ->resetOffset();
+    }
 }

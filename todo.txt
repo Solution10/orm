@@ -12,7 +12,9 @@ Repos
 SQL
 -----------------------
 - Split into separate package?
+- Dialects!
 - UPDATE
 - CREATE
 - DELETE
 - Table SQL? CREATE TABLE, ALTER et al?
+- Security unit tests

@@ -4,6 +4,7 @@ namespace Solution10\ORM\Tests\SQL;
 
 use PHPUnit_Framework_TestCase;
 use Solution10\ORM\SQL\ConditionBuilder;
+use Solution10\ORM\SQL\Dialect\ANSI;
 
 class HavingTest extends PHPUnit_Framework_TestCase
 {
@@ -18,7 +19,7 @@ class HavingTest extends PHPUnit_Framework_TestCase
     public function testNoHaving()
     {
         $w = $this->havingObject();
-        $this->assertEquals('', $w->buildHavingSQL());
+        $this->assertEquals('', $w->buildHavingSQL(new ANSI));
 
         // Test return type:
         $this->assertEquals([], $w->having());
@@ -28,7 +29,7 @@ class HavingTest extends PHPUnit_Framework_TestCase
     {
         $w = $this->havingObject();
         $this->assertEquals($w, $w->having('name', '=', 'Alex'));
-        $this->assertEquals('HAVING name = ?', $w->buildHavingSQL());
+        $this->assertEquals('HAVING "name" = ?', $w->buildHavingSQL(new ANSI));
         $this->assertEquals(['Alex'], $w->getHavingParams());
 
         // Test return type:
@@ -48,7 +49,7 @@ class HavingTest extends PHPUnit_Framework_TestCase
         $w->having('name', '=', 'Alex')
             ->orHaving('name', '=', 'Alexander');
 
-        $this->assertEquals('HAVING name = ? OR name = ?', $w->buildHavingSQL());
+        $this->assertEquals('HAVING "name" = ? OR "name" = ?', $w->buildHavingSQL(new ANSI));
         $this->assertEquals(['Alex', 'Alexander'], $w->getHavingParams());
 
         // Test return type:
@@ -74,7 +75,7 @@ class HavingTest extends PHPUnit_Framework_TestCase
         $w = $this->havingObject();
         $w->orHaving('name', '=', 'Alex');
 
-        $this->assertEquals('HAVING name = ?', $w->buildHavingSQL());
+        $this->assertEquals('HAVING "name" = ?', $w->buildHavingSQL(new ANSI));
         $this->assertEquals(['Alex'], $w->getHavingParams());
 
         $where = $w->orHaving();
@@ -95,7 +96,7 @@ class HavingTest extends PHPUnit_Framework_TestCase
             $q->orWith('city', '=', 'Toronto');
         });
 
-        $this->assertEquals('HAVING name = ? AND (city = ? OR city = ?)', $w->buildHavingSQL());
+        $this->assertEquals('HAVING "name" = ? AND ("city" = ? OR "city" = ?)', $w->buildHavingSQL(new ANSI));
         $this->assertEquals(['Alex', 'London', 'Toronto'], $w->getHavingParams());
 
         $having = $w->having();
@@ -136,8 +137,9 @@ class HavingTest extends PHPUnit_Framework_TestCase
             });
 
         $this->assertEquals(
-            'HAVING name = ? OR name = ? AND (city = ? AND country = ?) OR (city = ? AND country = ? OR (active != ?))',
-            $w->buildHavingSQL()
+            'HAVING "name" = ? OR "name" = ? AND ("city" = ? AND "country" = ?) '
+            .'OR ("city" = ? AND "country" = ? OR ("active" != ?))',
+            $w->buildHavingSQL(new ANSI)
         );
         $this->assertEquals(
             ['Alex', 'Lucie', 'London', 'GB', 'Toronto', 'CA', true],

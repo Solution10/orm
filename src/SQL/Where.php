@@ -79,15 +79,16 @@ trait Where
     /**
      * Returns the SQL string for the WHERE portion of the query
      *
+     * @param   DialectInterface    $dialect
      * @return  string
      */
-    public function buildWhereSQL()
+    public function buildWhereSQL(DialectInterface $dialect)
     {
         if (!isset($this->whereBuilder) || !$this->whereBuilder->hasConditions()) {
             return '';
         }
 
-        return 'WHERE '.$this->whereBuilder->buildConditionSQL();
+        return 'WHERE '.$this->whereBuilder->buildConditionSQL($dialect);
     }
 
     /**

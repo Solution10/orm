@@ -2,6 +2,8 @@
 
 namespace Solution10\ORM\SQL;
 
+use Solution10\ORM\SQL\Dialect\ANSI;
+
 /**
  * Select
  *
@@ -18,8 +20,9 @@ class Select
     use Paginate;
 
     /**
-     * @var
+     * @var     DialectInterface
      */
+    protected $dialect;
 
     /**
      * @var     array
@@ -46,7 +49,15 @@ class Select
      */
     protected $orderBy = [];
 
-
+    /**
+     * Pass in a dialect, otherwise it'll assume ANSI SQL.
+     *
+     * @param   DialectInterface|null    $dialect
+     */
+    public function __construct(DialectInterface $dialect = null)
+    {
+        $this->dialect = ($dialect === null)? new ANSI() : $dialect;
+    }
 
     /*
      * ------------------ SELECT ---------------------
@@ -85,7 +96,11 @@ class Select
 
         $parts = [];
         foreach ($this->selectColumns as $key => $value) {
-            $parts[] = (is_integer($key))? $value : $key.' AS '.$value;
+            if (is_integer($key)) {
+                $parts[] = $this->dialect->quoteField($value);
+            } else {
+                $parts[] = $this->dialect->quoteField($key).' AS '.$this->dialect->quoteField($value);
+            }
         }
         return 'SELECT '.implode(', ', $parts);
     }
@@ -134,7 +149,11 @@ class Select
 
         $parts = [];
         foreach ($this->fromTables as $key => $value) {
-            $parts[] = (is_null($value))? $key : $key.' '.$value;
+            if ($value === null) {
+                $parts[] = $this->dialect->quoteTable($key);
+            } else {
+                $parts[] = $this->dialect->quoteTable($key).' '.$this->dialect->quoteTable($value);
+            }
         }
         return 'FROM '.implode(', ', $parts);
     }
@@ -199,7 +218,7 @@ class Select
         foreach ($this->joins as $j) {
             $join = ($j['type'] != 'INNER')? $j['type'].' ' : '';
             $join .= 'JOIN ';
-            $join .= $j['right'].' ON '.$j['predicate'];
+            $join .= $this->dialect->quoteTable($j['right']).' ON '.$this->dialect->quoteField($j['predicate']);
             $joins[] = $join;
         }
 
@@ -250,7 +269,12 @@ class Select
             return '';
         }
 
-        return 'GROUP BY '.implode(', ', $this->groupBy);
+        $parts = [];
+        foreach ($this->groupBy as $p) {
+            $parts[] = $this->dialect->quoteField($p);
+        }
+
+        return 'GROUP BY '.implode(', ', $parts);
     }
 
     /**
@@ -305,7 +329,7 @@ class Select
 
         $parts = [];
         foreach ($this->orderBy as $field => $direction) {
-            $parts[] = $field.' '.$direction;
+            $parts[] = $this->dialect->quoteField($field).' '.$direction;
         }
 
         return 'ORDER BY '.implode(', ', $parts);
@@ -340,9 +364,9 @@ class Select
             $this->buildSelectSQL(),
             $this->buildFromSQL(),
             $this->buildJoinSQL(),
-            $this->buildWhereSQL(),
+            $this->buildWhereSQL($this->dialect),
             $this->buildGroupBySQL(),
-            $this->buildHavingSQL(),
+            $this->buildHavingSQL($this->dialect),
             $this->buildOrderBySQL(),
             $this->buildPaginateSQL()
         ];

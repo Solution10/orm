@@ -40,19 +40,19 @@ class SelectTest extends PHPUnit_Framework_TestCase
 
         $query = new Select;
         $query->select('name');
-        $this->assertEquals('SELECT name', $query->buildSelectSQL());
+        $this->assertEquals('SELECT "name"', $query->buildSelectSQL());
 
         $query = new Select;
         $query->select(['name', 'age']);
-        $this->assertEquals('SELECT name, age', $query->buildSelectSQL());
+        $this->assertEquals('SELECT "name", "age"', $query->buildSelectSQL());
 
         $query = new Select;
         $query->select(['name' => 'myname']);
-        $this->assertEquals('SELECT name AS myname', $query->buildSelectSQL());
+        $this->assertEquals('SELECT "name" AS "myname"', $query->buildSelectSQL());
 
         $query = new Select;
         $query->select(['name' => 'myname', 'age' => 'years_alive']);
-        $this->assertEquals('SELECT name AS myname, age AS years_alive', $query->buildSelectSQL());
+        $this->assertEquals('SELECT "name" AS "myname", "age" AS "years_alive"', $query->buildSelectSQL());
     }
 
     public function testResetSelect()
@@ -96,18 +96,18 @@ class SelectTest extends PHPUnit_Framework_TestCase
 
         $query = new Select;
         $query->from('users');
-        $this->assertEquals('FROM users', $query->buildFromSQL());
+        $this->assertEquals('FROM "users"', $query->buildFromSQL());
 
         $query = new Select;
         $query->from('users', 'u');
-        $this->assertEquals('FROM users u', $query->buildFromSQL());
+        $this->assertEquals('FROM "users" "u"', $query->buildFromSQL());
 
         $query = new Select;
         $query
             ->from('users', 'u')
             ->from('roles', 'r');
 
-        $this->assertEquals('FROM users u, roles r', $query->buildFromSQL());
+        $this->assertEquals('FROM "users" "u", "roles" "r"', $query->buildFromSQL());
     }
 
     public function testResetFrom()
@@ -194,21 +194,22 @@ class SelectTest extends PHPUnit_Framework_TestCase
 
         $query = new Select;
         $query->join('users', 'posts', 'users.id = posts.user_id');
-        $this->assertEquals('JOIN posts ON users.id = posts.user_id', $query->buildJoinSQL());
+        $this->assertEquals('JOIN "posts" ON "users"."id" = "posts"."user_id"', $query->buildJoinSQL());
 
         $query = new Select;
         $query->join('users', 'posts', 'users.id = posts.user_id', 'LEFT');
-        $this->assertEquals('LEFT JOIN posts ON users.id = posts.user_id', $query->buildJoinSQL());
+        $this->assertEquals('LEFT JOIN "posts" ON "users"."id" = "posts"."user_id"', $query->buildJoinSQL());
 
         $query = new Select;
         $query->join('users', 'posts', 'users.id = posts.user_id', 'RIGHT');
-        $this->assertEquals('RIGHT JOIN posts ON users.id = posts.user_id', $query->buildJoinSQL());
+        $this->assertEquals('RIGHT JOIN "posts" ON "users"."id" = "posts"."user_id"', $query->buildJoinSQL());
 
         $query = new Select;
         $query->join('users', 'posts', 'users.id = posts.user_id');
         $query->join('users', 'comments', 'users.id = comments.user_id', 'LEFT');
         $this->assertEquals(
-            "JOIN posts ON users.id = posts.user_id\nLEFT JOIN comments ON users.id = comments.user_id",
+            'JOIN "posts" ON "users"."id" = "posts"."user_id"'."\n"
+            .'LEFT JOIN "comments" ON "users"."id" = "comments"."user_id"',
             $query->buildJoinSQL()
         );
     }
@@ -257,18 +258,18 @@ class SelectTest extends PHPUnit_Framework_TestCase
 
         $query = new Select;
         $query->groupBy('name');
-        $this->assertEquals('GROUP BY name', $query->buildGroupBySQL());
+        $this->assertEquals('GROUP BY "name"', $query->buildGroupBySQL());
 
         $query = new Select;
         $query
             ->groupBy('name')
             ->groupBy('age');
 
-        $this->assertEquals('GROUP BY name, age', $query->buildGroupBySQL());
+        $this->assertEquals('GROUP BY "name", "age"', $query->buildGroupBySQL());
 
         $query = new Select;
         $query->groupBy(['name', 'age']);
-        $this->assertEquals('GROUP BY name, age', $query->buildGroupBySQL());
+        $this->assertEquals('GROUP BY "name", "age"', $query->buildGroupBySQL());
     }
 
     public function testResetGroupBy()
@@ -320,19 +321,19 @@ class SelectTest extends PHPUnit_Framework_TestCase
 
         $query = new Select;
         $query->orderBy('name', 'ASC');
-        $this->assertEquals('ORDER BY name ASC', $query->buildOrderBySQL());
+        $this->assertEquals('ORDER BY "name" ASC', $query->buildOrderBySQL());
 
         $query = new Select;
         $query->orderBy('name', 'ASC');
         $query->orderBy('age', 'DESC');
-        $this->assertEquals('ORDER BY name ASC, age DESC', $query->buildOrderBySQL());
+        $this->assertEquals('ORDER BY "name" ASC, "age" DESC', $query->buildOrderBySQL());
 
         $query = new Select;
         $query->orderBy([
             'name'  => 'ASC',
             'age'   => 'DESC'
         ]);
-        $this->assertEquals('ORDER BY name ASC, age DESC', $query->buildOrderBySQL());
+        $this->assertEquals('ORDER BY "name" ASC, "age" DESC', $query->buildOrderBySQL());
     }
 
     public function testResetOrderBy()
@@ -359,7 +360,7 @@ class SelectTest extends PHPUnit_Framework_TestCase
             ->from('users');
 
         $this->assertEquals(
-            'SELECT * FROM users',
+            'SELECT * FROM "users"',
             (string)$q
         );
         $this->assertEquals([], $q->params());
@@ -373,7 +374,7 @@ class SelectTest extends PHPUnit_Framework_TestCase
             ->where('name', '=', 'Alex');
 
         $this->assertEquals(
-            'SELECT * FROM users WHERE name = ?',
+            'SELECT * FROM "users" WHERE "name" = ?',
             (string)$q
         );
         $this->assertEquals(['Alex'], $q->params());
@@ -389,7 +390,7 @@ class SelectTest extends PHPUnit_Framework_TestCase
         ;
 
         $this->assertEquals(
-            'SELECT * FROM users WHERE name = ? ORDER BY created DESC',
+            'SELECT * FROM "users" WHERE "name" = ? ORDER BY "created" DESC',
             (string)$q
         );
         $this->assertEquals(['Alex'], $q->params());
@@ -406,7 +407,7 @@ class SelectTest extends PHPUnit_Framework_TestCase
         ;
 
         $this->assertEquals(
-            'SELECT * FROM users WHERE name = ? ORDER BY created DESC LIMIT 10',
+            'SELECT * FROM "users" WHERE "name" = ? ORDER BY "created" DESC LIMIT 10',
             (string)$q
         );
         $this->assertEquals(['Alex'], $q->params());
@@ -424,7 +425,7 @@ class SelectTest extends PHPUnit_Framework_TestCase
         ;
 
         $this->assertEquals(
-            'SELECT * FROM users WHERE name = ? ORDER BY created DESC LIMIT 5, 10',
+            'SELECT * FROM "users" WHERE "name" = ? ORDER BY "created" DESC LIMIT 5, 10',
             (string)$q
         );
         $this->assertEquals(['Alex'], $q->params());
@@ -443,8 +444,8 @@ class SelectTest extends PHPUnit_Framework_TestCase
         ;
 
         $this->assertEquals(
-            'SELECT * FROM users LEFT JOIN comments ON users.id = comments.user_id '
-            .'WHERE name = ? ORDER BY created DESC LIMIT 5, 10',
+            'SELECT * FROM "users" LEFT JOIN "comments" ON "users"."id" = "comments"."user_id" '
+            .'WHERE "name" = ? ORDER BY "created" DESC LIMIT 5, 10',
             (string)$q
         );
         $this->assertEquals(['Alex'], $q->params());
@@ -464,8 +465,8 @@ class SelectTest extends PHPUnit_Framework_TestCase
         ;
 
         $this->assertEquals(
-            'SELECT * FROM users LEFT JOIN comments ON users.id = comments.user_id '
-            .'WHERE name = ? GROUP BY comments.user_id ORDER BY created DESC LIMIT 5, 10',
+            'SELECT * FROM "users" LEFT JOIN "comments" ON "users"."id" = "comments"."user_id" '
+            .'WHERE "name" = ? GROUP BY "comments"."user_id" ORDER BY "created" DESC LIMIT 5, 10',
             (string)$q
         );
         $this->assertEquals(['Alex'], $q->params());
@@ -486,9 +487,9 @@ class SelectTest extends PHPUnit_Framework_TestCase
         ;
 
         $this->assertEquals(
-            'SELECT * FROM users LEFT JOIN comments ON users.id = comments.user_id '
-            .'WHERE name = ? GROUP BY comments.user_id HAVING COUNT(comments.user_id) > ? '
-            .'ORDER BY created DESC LIMIT 5, 10',
+            'SELECT * FROM "users" LEFT JOIN "comments" ON "users"."id" = "comments"."user_id" '
+            .'WHERE "name" = ? GROUP BY "comments"."user_id" HAVING COUNT("comments"."user_id") > ? '
+            .'ORDER BY "created" DESC LIMIT 5, 10',
             (string)$q
         );
         $this->assertEquals(['Alex', 10], $q->params());

@@ -98,29 +98,32 @@ class ConditionBuilder
     /**
      * Builds up the SQL for this condition.
      *
+     * @param   DialectInterface    $dialect
      * @return  string
      */
-    public function buildConditionSQL()
+    public function buildConditionSQL(DialectInterface $dialect)
     {
-        return $this->buildPartsSQL($this->parts);
+        return $this->buildPartsSQL($this->parts, $dialect);
     }
 
     /**
+     * Builds up an array of parts into a SQL string. To be used recursively.
      *
-     * @param   array   $parts
+     * @param   DialectInterface    $dialect
+     * @param   array               $parts
      * @return  string
      */
-    protected function buildPartsSQL(array $parts = array())
+    protected function buildPartsSQL(array $parts, DialectInterface $dialect)
     {
         $where = '';
         foreach ($parts as $c) {
             $where .= ' '.$c['join'].' ';
             if (array_key_exists('sub', $c)) {
                 $where .= '(';
-                $where .= $this->buildPartsSQL($c['sub']);
+                $where .= $this->buildPartsSQL($c['sub'], $dialect);
                 $where .= ')';
             } else {
-                $where .= $c['field'].' '.$c['operator'].' ?';
+                $where .= $dialect->quoteField($c['field']).' '.$c['operator'].' ?';
             }
         }
         $where = trim(preg_replace('/^(AND|OR) /', '', trim($where)));

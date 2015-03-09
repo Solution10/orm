@@ -82,15 +82,16 @@ trait Having
     /**
      * Returns the SQL string for the WHERE portion of the query
      *
+     * @param   DialectInterface    $dialect
      * @return  string
      */
-    public function buildHavingSQL()
+    public function buildHavingSQL(DialectInterface $dialect)
     {
         if (!isset($this->havingBuilder) || !$this->havingBuilder->hasConditions()) {
             return '';
         }
 
-        return 'HAVING '.$this->havingBuilder->buildConditionSQL();
+        return 'HAVING '.$this->havingBuilder->buildConditionSQL($dialect);
     }
 
     /**

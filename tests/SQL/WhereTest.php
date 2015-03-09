@@ -4,6 +4,7 @@ namespace Solution10\ORM\Tests\SQL;
 
 use PHPUnit_Framework_TestCase;
 use Solution10\ORM\SQL\ConditionBuilder;
+use Solution10\ORM\SQL\Dialect\ANSI;
 
 class WhereTest extends PHPUnit_Framework_TestCase
 {
@@ -18,7 +19,7 @@ class WhereTest extends PHPUnit_Framework_TestCase
     public function testNoWhere()
     {
         $w = $this->whereObject();
-        $this->assertEquals('', $w->buildWhereSQL());
+        $this->assertEquals('', $w->buildWhereSQL(new ANSI));
 
         // Test return type:
         $this->assertEquals([], $w->where());
@@ -28,7 +29,7 @@ class WhereTest extends PHPUnit_Framework_TestCase
     {
         $w = $this->whereObject();
         $this->assertEquals($w, $w->where('name', '=', 'Alex'));
-        $this->assertEquals('WHERE name = ?', $w->buildWhereSQL());
+        $this->assertEquals('WHERE "name" = ?', $w->buildWhereSQL(new ANSI));
         $this->assertEquals(['Alex'], $w->getWhereParams());
 
         // Test return type:
@@ -48,7 +49,7 @@ class WhereTest extends PHPUnit_Framework_TestCase
         $w->where('name', '=', 'Alex')
             ->orWhere('name', '=', 'Alexander');
 
-        $this->assertEquals('WHERE name = ? OR name = ?', $w->buildWhereSQL());
+        $this->assertEquals('WHERE "name" = ? OR "name" = ?', $w->buildWhereSQL(new ANSI));
         $this->assertEquals(['Alex', 'Alexander'], $w->getWhereParams());
 
         // Test return type:
@@ -74,7 +75,7 @@ class WhereTest extends PHPUnit_Framework_TestCase
         $w = $this->whereObject();
         $w->orWhere('name', '=', 'Alex');
 
-        $this->assertEquals('WHERE name = ?', $w->buildWhereSQL());
+        $this->assertEquals('WHERE "name" = ?', $w->buildWhereSQL(new ANSI));
         $this->assertEquals(['Alex'], $w->getWhereParams());
 
         $where = $w->orWhere();
@@ -95,7 +96,7 @@ class WhereTest extends PHPUnit_Framework_TestCase
             $q->orWith('city', '=', 'Toronto');
         });
 
-        $this->assertEquals('WHERE name = ? AND (city = ? OR city = ?)', $w->buildWhereSQL());
+        $this->assertEquals('WHERE "name" = ? AND ("city" = ? OR "city" = ?)', $w->buildWhereSQL(new ANSI));
         $this->assertEquals(['Alex', 'London', 'Toronto'], $w->getWhereParams());
 
         $where = $w->where();
@@ -136,8 +137,9 @@ class WhereTest extends PHPUnit_Framework_TestCase
             });
 
         $this->assertEquals(
-            'WHERE name = ? OR name = ? AND (city = ? AND country = ?) OR (city = ? AND country = ? OR (active != ?))',
-            $w->buildWhereSQL()
+            'WHERE "name" = ? OR "name" = ? AND ("city" = ? AND "country" = ?) '
+            .'OR ("city" = ? AND "country" = ? OR ("active" != ?))',
+            $w->buildWhereSQL(new ANSI)
         );
         $this->assertEquals(
             ['Alex', 'Lucie', 'London', 'GB', 'Toronto', 'CA', true],

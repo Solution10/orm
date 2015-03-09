@@ -174,30 +174,79 @@ class Select
      */
 
     /**
-     * Sets/Gets a JOIN.
+     * Sets/Gets an INNER JOIN.
      *
-     * @param   string|null     $left       String to set the left table (or the alias in from()), null to get
-     * @param   string|null     $right      Name of the right table
-     * @param   string|null     $predicate  String expression of how to make the join (u.id = p.u_id)
-     * @param   string          $type       Type (LEFT, RIGHT, INNER)
-     * @return  $this|array                 $this on set, array on get
-     * @throws  \InvalidArgumentException   On unknown $type
+     *  $query->join('comments', 'users.id', '=', 'comment.user_id');
+     *
+     * @param   string|null     $right          Name of the table to join
+     * @param   string|null     $leftField      Left part of the ON
+     * @param   string|null     $operator       Operator for the ON
+     * @param   string|null     $rightField     Right part of the ON
+     * @return  $this|array                     $this on set, array on get
+     * @throws  \InvalidArgumentException       On unknown $type
      */
-    public function join($left = null, $right = null, $predicate = null, $type = 'INNER')
+    public function join($right = null, $leftField = null, $operator = null, $rightField = null)
     {
-        if ($left === null) {
-            return $this->joins;
+        return $this->applyJoin('INNER', $right, $leftField, $operator, $rightField);
+    }
+
+    /**
+     * Sets/Gets a LEFT JOIN.
+     *
+     *  $query->leftJoin('comments', 'users.id', '=', 'comment.user_id');
+     *
+     * @param   string|null     $right          Name of the table we're joining
+     * @param   string|null     $leftField      Left part of the ON
+     * @param   string|null     $operator       Operator for the ON
+     * @param   string|null     $rightField     Right part of the ON
+     * @return  $this|array                     $this on set, array on get
+     * @throws  \InvalidArgumentException       On unknown $type
+     */
+    public function leftJoin($right = null, $leftField = null, $operator = null, $rightField = null)
+    {
+        return $this->applyJoin('LEFT', $right, $leftField, $operator, $rightField);
+    }
+
+    /**
+     * Sets/Gets a LEFT JOIN.
+     *
+     *  $query->leftJoin('comments', 'users.id', '=', 'comment.user_id');
+     *
+     * @param   string|null     $right          Name of the table we're joining
+     * @param   string|null     $leftField      Left part of the ON
+     * @param   string|null     $operator       Operator for the ON
+     * @param   string|null     $rightField     Right part of the ON
+     * @return  $this|array                     $this on set, array on get
+     * @throws  \InvalidArgumentException       On unknown $type
+     */
+    public function rightJoin($right = null, $leftField = null, $operator = null, $rightField = null)
+    {
+        return $this->applyJoin('RIGHT', $right, $leftField, $operator, $rightField);
+    }
+
+    /**
+     * Adds in any kind of join. Used internally, you should use join(), leftJoin() and rightJoin()
+     *
+     * @param   string          $type           The type of join to add
+     * @param   string|null     $right          Name of the right table
+     * @param   string|null     $leftField      Left part of the ON
+     * @param   string|null     $operator       Operator for the ON
+     * @param   string|null     $rightField     Right part of the ON
+     * @return  $this|array                     $this on set, array of joins for given type on get
+     */
+    protected function applyJoin($type, $right = null, $leftField = null, $operator = null, $rightField = null)
+    {
+        // Get:
+        if ($right === null) {
+            return (array_key_exists($type, $this->joins))? $this->joins[$type] : [];
         }
 
-        if (!in_array($type, ['LEFT', 'RIGHT', 'INNER'])) {
-            throw new \InvalidArgumentException('Unknown join type "'.$type.'"');
-        }
-
-        $this->joins[] = [
-            'type' => $type,
-            'left' => $left,
-            'right' => $right,
-            'predicate' => $predicate,
+        // Set:
+        $this->joins[$type][] = [
+            'right'         => $right,
+            'leftField'     => $leftField,
+            'operator'      => $operator,
+            'rightField'    => $rightField
         ];
 
         return $this;
@@ -215,11 +264,16 @@ class Select
         }
 
         $joins = [];
-        foreach ($this->joins as $j) {
-            $join = ($j['type'] != 'INNER')? $j['type'].' ' : '';
-            $join .= 'JOIN ';
-            $join .= $this->dialect->quoteTable($j['right']).' ON '.$this->dialect->quoteField($j['predicate']);
-            $joins[] = $join;
+        foreach ($this->joins as $type => $typeJoins) {
+            foreach ($typeJoins as $j) {
+                $join = ($type != 'INNER') ? $type . ' ' : '';
+                $join .= 'JOIN ';
+                $join .= $this->dialect->quoteTable($j['right']) . ' ON ';
+                $join .= $this->dialect->quoteField($j['leftField']);
+                $join .= ' '.$j['operator'].' ';
+                $join .= $this->dialect->quoteField($j['rightField']);
+                $joins[] = $join;
+            }
         }
 
         return trim(implode("\n", $joins));

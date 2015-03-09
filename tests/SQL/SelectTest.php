@@ -131,26 +131,30 @@ class SelectTest extends PHPUnit_Framework_TestCase
     {
         $query = new Select;
 
-        $this->assertEquals($query, $query->join('users', 'posts', 'users.id = posts.user_id'));
-        $this->assertEquals([[
-            'type' => 'INNER',
-            'left' => 'users',
-            'right' => 'posts',
-            'predicate' => 'users.id = posts.user_id'
-        ]], $query->join());
+        $this->assertEquals($query, $query->join('posts', 'users.id', '=', 'posts.user_id'));
+        $this->assertEquals([
+            [
+                'right' => 'posts',
+                'leftField' => 'users.id',
+                'operator' => '=',
+                'rightField' => 'posts.user_id'
+            ]
+        ], $query->join());
     }
 
     public function testJoinExplicitType()
     {
         $query = new Select;
 
-        $this->assertEquals($query, $query->join('users', 'posts', 'users.id = posts.user_id', 'LEFT'));
-        $this->assertEquals([[
-            'type' => 'LEFT',
-            'left' => 'users',
-            'right' => 'posts',
-            'predicate' => 'users.id = posts.user_id'
-        ]], $query->join());
+        $this->assertEquals($query, $query->leftJoin('posts', 'users.id', '=', 'posts.user_id'));
+        $this->assertEquals([
+            [
+                'right' => 'posts',
+                'leftField' => 'users.id',
+                'operator' => '=',
+                'rightField' => 'posts.user_id'
+            ]
+        ], $query->leftJoin());
     }
 
     public function testMultiJoin()
@@ -158,33 +162,26 @@ class SelectTest extends PHPUnit_Framework_TestCase
         $query = new Select;
 
         $query
-            ->join('users', 'posts', 'users.id = posts.user_id')
-            ->join('users', 'comments', 'users.id = comments.user_id', 'LEFT')
+            ->join('posts', 'users.id', '=', 'posts.user_id')
+            ->leftJoin('comments', 'users.id', '=', 'comments.user_id')
         ;
         $this->assertEquals([
             [
-                'type' => 'INNER',
-                'left' => 'users',
                 'right' => 'posts',
-                'predicate' => 'users.id = posts.user_id'
-            ],
-            [
-                'type' => 'LEFT',
-                'left' => 'users',
-                'right' => 'comments',
-                'predicate' => 'users.id = comments.user_id'
+                'leftField' => 'users.id',
+                'operator' => '=',
+                'rightField' => 'posts.user_id'
             ]
         ], $query->join());
-    }
 
-    /**
-     * @expectedException           \InvalidArgumentException
-     * @expectedExceptionMessage    Unknown join type "MOO"
-     */
-    public function testJoinBadType()
-    {
-        $query = new Select;
-        $query->join('users', 'posts', 'users.id = p.user_id', 'MOO');
+        $this->assertEquals([
+            [
+                'right' => 'comments',
+                'leftField' => 'users.id',
+                'operator' => '=',
+                'rightField' => 'comments.user_id'
+            ]
+        ], $query->leftJoin());
     }
 
     public function testJoinSQL()
@@ -193,20 +190,20 @@ class SelectTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('', $query->buildJoinSQL());
 
         $query = new Select;
-        $query->join('users', 'posts', 'users.id = posts.user_id');
+        $query->join('posts', 'users.id', '=', 'posts.user_id');
         $this->assertEquals('JOIN "posts" ON "users"."id" = "posts"."user_id"', $query->buildJoinSQL());
 
         $query = new Select;
-        $query->join('users', 'posts', 'users.id = posts.user_id', 'LEFT');
+        $query->leftJoin('posts', 'users.id', '=', 'posts.user_id');
         $this->assertEquals('LEFT JOIN "posts" ON "users"."id" = "posts"."user_id"', $query->buildJoinSQL());
 
         $query = new Select;
-        $query->join('users', 'posts', 'users.id = posts.user_id', 'RIGHT');
+        $query->rightJoin('posts', 'users.id', '=', 'posts.user_id');
         $this->assertEquals('RIGHT JOIN "posts" ON "users"."id" = "posts"."user_id"', $query->buildJoinSQL());
 
         $query = new Select;
-        $query->join('users', 'posts', 'users.id = posts.user_id');
-        $query->join('users', 'comments', 'users.id = comments.user_id', 'LEFT');
+        $query->join('posts', 'users.id', '=', 'posts.user_id');
+        $query->leftJoin('comments', 'users.id', '=', 'comments.user_id');
         $this->assertEquals(
             'JOIN "posts" ON "users"."id" = "posts"."user_id"'."\n"
             .'LEFT JOIN "comments" ON "users"."id" = "comments"."user_id"',
@@ -217,10 +214,11 @@ class SelectTest extends PHPUnit_Framework_TestCase
     public function testResetJoins()
     {
         $query = new Select;
-        $query->join('users', 'posts', 'users.id = posts.user_id');
-        $query->join('users', 'comments', 'users.id = comments.user_id', 'LEFT');
+        $query->join('posts', 'users.id', '=', 'posts.user_id');
+        $query->leftJoin('comments', 'users.id', '=', 'comments.user_id');
 
-        $this->assertCount(2, $query->join());
+        $this->assertCount(1, $query->join());
+        $this->assertCount(1, $query->leftJoin());
 
         $this->assertEquals($query, $query->resetJoins());
         $this->assertEquals([], $query->join());
@@ -440,7 +438,7 @@ class SelectTest extends PHPUnit_Framework_TestCase
             ->orderBy('created', 'DESC')
             ->limit(10)
             ->offset(5)
-            ->join('users', 'comments', 'users.id = comments.user_id', 'LEFT')
+            ->leftJoin('comments', 'users.id', '=', 'comments.user_id')
         ;
 
         $this->assertEquals(
@@ -460,7 +458,7 @@ class SelectTest extends PHPUnit_Framework_TestCase
             ->orderBy('created', 'DESC')
             ->limit(10)
             ->offset(5)
-            ->join('users', 'comments', 'users.id = comments.user_id', 'LEFT')
+            ->leftJoin('comments', 'users.id', '=', 'comments.user_id')
             ->groupBy('comments.user_id')
         ;
 
@@ -481,7 +479,7 @@ class SelectTest extends PHPUnit_Framework_TestCase
             ->orderBy('created', 'DESC')
             ->limit(10)
             ->offset(5)
-            ->join('users', 'comments', 'users.id = comments.user_id', 'LEFT')
+            ->leftJoin('comments', 'users.id', '=', 'comments.user_id')
             ->groupBy('comments.user_id')
             ->having('COUNT(comments.user_id)', '>', 10)
         ;
@@ -504,7 +502,7 @@ class SelectTest extends PHPUnit_Framework_TestCase
             ->orderBy('created', 'DESC')
             ->limit(10)
             ->offset(5)
-            ->join('users', 'comments', 'users.id = comments.user_id', 'LEFT')
+            ->leftJoin('comments', 'users.id', '=', 'comments.user_id')
             ->groupBy('comments.user_id')
             ->having('COUNT(comments.user_id)', '>', 10)
         ;

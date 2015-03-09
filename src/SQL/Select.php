@@ -18,6 +18,10 @@ class Select
     use Paginate;
 
     /**
+     * @var
+     */
+
+    /**
      * @var     array
      */
     protected $selectColumns = [];
@@ -41,6 +45,8 @@ class Select
      * @var     array
      */
     protected $orderBy = [];
+
+
 
     /*
      * ------------------ SELECT ---------------------

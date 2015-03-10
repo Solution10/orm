@@ -66,20 +66,39 @@ class Select
     /**
      * Set/Get the Select columns.
      *
+     * To get, pass no arguments.
+     *
+     * To set:
+     *  - pass either a pair of string for column, alias
+     *  - pass an array of columns
+     *  - pass an array of [alias => column] pairs
+     *
+     * Columns can be ExpressionInterface instances.
+     *
      * @param   string|array|null   $columns
+     * @param   string|null         $alias      Null to get or no alias. Alias is ignored if $columns is an array.
      * @return  $this|array
      */
-    public function select($columns = null)
+    public function select($columns = null, $alias = null)
     {
         if ($columns === null) {
             return $this->selectColumns;
         }
 
         if (!is_array($columns)) {
-            $columns = [$columns];
+            $this->selectColumns[] = [
+                'column' => $columns,
+                'alias' => $alias,
+            ];
+        } else {
+            foreach ($columns as $k => $v) {
+                $this->selectColumns[] = [
+                    'column'    => $v,
+                    'alias'     => (is_numeric($k) || is_null($k))? null : $k,
+                ];
+            }
         }
 
-        $this->selectColumns = array_merge($this->selectColumns, $columns);
         return $this;
     }
 
@@ -95,12 +114,10 @@ class Select
         }
 
         $parts = [];
-        foreach ($this->selectColumns as $key => $value) {
-            if (is_integer($key)) {
-                $parts[] = $this->dialect->quoteField($value);
-            } else {
-                $parts[] = $this->dialect->quoteField($key).' AS '.$this->dialect->quoteField($value);
-            }
+        foreach ($this->selectColumns as $c) {
+            $ret = $this->dialect->quoteField($c['column']);
+            $ret .= ($c['alias'] != null)? ' AS '.$this->dialect->quoteField($c['alias']) : '';
+            $parts[] = $ret;
         }
         return 'SELECT '.implode(', ', $parts);
     }

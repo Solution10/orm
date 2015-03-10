@@ -3,6 +3,7 @@
 namespace Solution10\ORM\Tests\SQL;
 
 use PHPUnit_Framework_TestCase;
+use Solution10\ORM\SQL\Expression;
 use Solution10\ORM\SQL\Select;
 
 class SelectTest extends PHPUnit_Framework_TestCase
@@ -15,22 +16,29 @@ class SelectTest extends PHPUnit_Framework_TestCase
         // No alias
         $query = new Select;
         $this->assertEquals($query, $query->select('id'));
-        $this->assertEquals(['id'], $query->select());
+        $this->assertEquals([['column' => 'id', 'alias' => null]], $query->select());
 
         // Aliasing
         $query = new Select;
-        $query->select(['id' => 'my_id']);
-        $this->assertEquals(['id' => 'my_id'], $query->select());
+        $query->select(['my_id' => 'id']);
+        $this->assertEquals([['column' => 'id', 'alias' => 'my_id']], $query->select());
 
         // Array, without aliasing
         $query = new Select;
         $query->select(['id', 'username', 'password']);
-        $this->assertEquals(['id', 'username', 'password'], $query->select());
+        $this->assertEquals([
+            ['column' => 'id', 'alias' => null],
+            ['column' => 'username', 'alias' => null],
+            ['column' => 'password', 'alias' => null]
+        ], $query->select());
 
         // Array with aliasing
         $query = new Select;
-        $query->select(['id' => 'my_id', 'username' => 'my_username']);
-        $this->assertEquals(['id' => 'my_id', 'username' => 'my_username'], $query->select());
+        $query->select(['my_id' => 'id', 'my_username' => 'username']);
+        $this->assertEquals([
+            ['column' => 'id', 'alias' => 'my_id'],
+            ['column' => 'username', 'alias' => 'my_username']
+        ], $query->select());
     }
 
     public function testSelectSQL()
@@ -47,11 +55,11 @@ class SelectTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('SELECT "name", "age"', $query->buildSelectSQL());
 
         $query = new Select;
-        $query->select(['name' => 'myname']);
+        $query->select(['myname' => 'name']);
         $this->assertEquals('SELECT "name" AS "myname"', $query->buildSelectSQL());
 
         $query = new Select;
-        $query->select(['name' => 'myname', 'age' => 'years_alive']);
+        $query->select(['myname' => 'name', 'years_alive' => 'age']);
         $this->assertEquals('SELECT "name" AS "myname", "age" AS "years_alive"', $query->buildSelectSQL());
     }
 
@@ -62,10 +70,27 @@ class SelectTest extends PHPUnit_Framework_TestCase
             ->select('name')
             ->select('age');
 
-        $this->assertEquals(['name', 'age'], $query->select());
+        $this->assertEquals([
+            ['column' => 'name', 'alias' => null],
+            ['column' => 'age', 'alias' => null]
+        ], $query->select());
 
         $this->assertEquals($query, $query->resetSelect());
         $this->assertEquals([], $query->select());
+    }
+
+    public function testSelectExpressions()
+    {
+        $query = new Select;
+        $query->select(new Expression('COUNT(*)'));
+        $this->assertEquals('SELECT COUNT(*)', $query->buildSelectSQL());
+    }
+
+    public function testSelectExpressionsAs()
+    {
+        $query = new Select;
+        $query->select(new Expression('COUNT(*)'), 'total');
+        $this->assertEquals('SELECT COUNT(*) AS "total"', $query->buildSelectSQL());
     }
 
     /*

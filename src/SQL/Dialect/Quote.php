@@ -2,6 +2,8 @@
 
 namespace Solution10\ORM\SQL\Dialect;
 
+use Solution10\ORM\SQL\ExpressionInterface;
+
 /**
  * Quote
  *
@@ -19,13 +21,17 @@ trait Quote
      * Takes a period-separated string and puts the appropriate quote
      * marks around it, guarding against double quoting.
      *
-     * @param   string  $string
-     * @param   string  $quoteMark      Mark to use for start and end of quotes
-     * @param   array   $unquotable     Any strings that mustn't be quoted (ie *)
+     * @param   string|ExpressionInterface  $string
+     * @param   string                      $quoteMark      Mark to use for start and end of quotes
+     * @param   array                       $unquotable     Any strings that mustn't be quoted (ie *)
      * @return  string
      */
     protected function quoteStructureParts($string, $quoteMark, array $unquotable = [])
     {
+        if ($string instanceof ExpressionInterface) {
+            return $string;
+        }
+
         $string = trim($string);
         if (strlen($string) == 0 || is_null($string)) {
             return $string;

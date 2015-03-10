@@ -103,7 +103,10 @@ class SelectTest extends PHPUnit_Framework_TestCase
 
         // With alias
         $query->from('users', 'u');
-        $this->assertEquals(['users' => 'u'], $query->from());
+        $this->assertEquals([[
+            'table' => 'users',
+            'alias' => 'u'
+        ]], $query->from());
     }
 
     public function testFromWithoutAlias()
@@ -111,7 +114,10 @@ class SelectTest extends PHPUnit_Framework_TestCase
         $query = new Select;
         $query->from('noalias');
 
-        $this->assertEquals(['noalias' => null], $query->from());
+        $this->assertEquals([[
+            'table' => 'noalias',
+            'alias' => null
+        ]], $query->from());
     }
 
     public function testFromSQL()
@@ -142,10 +148,22 @@ class SelectTest extends PHPUnit_Framework_TestCase
             ->from('users')
             ->from('comments');
 
-        $this->assertEquals(['users' => null, 'comments' => null], $query->from());
+        $this->assertEquals([
+            ['table' => 'users', 'alias' => null],
+            ['table' => 'comments', 'alias' => null],
+        ], $query->from());
 
         $this->assertEquals($query, $query->resetFrom());
         $this->assertEquals([], $query->from());
+    }
+
+    public function testFromExpressions()
+    {
+        $query = new Select;
+        $query
+            ->from(new Expression('users u'));
+
+        $this->assertEquals('FROM users u', $query->buildFromSQL());
     }
 
     /*

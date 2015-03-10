@@ -149,7 +149,10 @@ class Select
         if ($table === null) {
             return $this->fromTables;
         }
-        $this->fromTables[$table] = $alias;
+        $this->fromTables[] = [
+            'table' => $table,
+            'alias' => $alias
+        ];
         return $this;
     }
 
@@ -165,12 +168,10 @@ class Select
         }
 
         $parts = [];
-        foreach ($this->fromTables as $key => $value) {
-            if ($value === null) {
-                $parts[] = $this->dialect->quoteTable($key);
-            } else {
-                $parts[] = $this->dialect->quoteTable($key).' '.$this->dialect->quoteTable($value);
-            }
+        foreach ($this->fromTables as $f) {
+            $part = $this->dialect->quoteTable($f['table']);
+            $part .= ($f['alias'] !== null)? ' '.$this->dialect->quoteTable($f['alias']) : '';
+            $parts[] = $part;
         }
         return 'FROM '.implode(', ', $parts);
     }

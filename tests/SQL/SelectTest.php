@@ -506,7 +506,7 @@ class SelectTest extends PHPUnit_Framework_TestCase
             ->offset(5)
             ->leftJoin('comments', 'users.id', '=', 'comments.user_id')
             ->groupBy('comments.user_id')
-            ->having('COUNT(comments.user_id)', '>', 10)
+            ->having(new Expression('COUNT("comments"."user_id")'), '>', 10)
         ;
 
         $this->assertEquals(

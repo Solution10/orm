@@ -333,13 +333,17 @@ class SelectTest extends PHPUnit_Framework_TestCase
     public function testOrderBySingle()
     {
         $query = new Select;
-
         $this->assertEquals($query, $query->orderBy('name', 'DESC'));
-        $this->assertEquals(['name' => 'DESC'], $query->orderBy());
+        $this->assertEquals([
+            ['field' => 'name', 'direction' => 'DESC']
+        ], $query->orderBy());
 
         // And test the default:
+        $query = new Select;
         $query->orderBy('name');
-        $this->assertEquals(['name' => 'ASC'], $query->orderBy());
+        $this->assertEquals([
+            ['field' => 'name', 'direction' => 'ASC']
+        ], $query->orderBy());
     }
 
     public function testOrderByArray()
@@ -352,7 +356,10 @@ class SelectTest extends PHPUnit_Framework_TestCase
         ];
 
         $this->assertEquals($query, $query->orderBy($order));
-        $this->assertEquals($order, $query->orderBy());
+        $this->assertEquals([
+            ['field' => 'name', 'direction' => 'ASC'],
+            ['field' => 'age', 'direction' => 'DESC']
+        ], $query->orderBy());
     }
 
     public function testOrderBySQL()
@@ -384,10 +391,21 @@ class SelectTest extends PHPUnit_Framework_TestCase
             ->orderBy('name', 'ASC')
             ->orderBy('age', 'DESC');
 
-        $this->assertEquals(['name' => 'ASC', 'age' => 'DESC'], $query->orderBy());
+        $this->assertEquals([
+            ['field' => 'name', 'direction' => 'ASC'],
+            ['field' => 'age', 'direction' => 'DESC']
+        ], $query->orderBy());
 
         $this->assertEquals($query, $query->resetOrderBy());
         $this->assertEquals([], $query->orderBy());
+    }
+
+    public function testOrderByExpressions()
+    {
+        $query = new Select;
+        $query->orderBy(new Expression('RAND()'));
+
+        $this->assertEquals('ORDER BY RAND()', $query->buildOrderBySQL());
     }
 
     /*

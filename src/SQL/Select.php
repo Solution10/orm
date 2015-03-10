@@ -377,12 +377,18 @@ class Select
             return $this->orderBy;
         }
 
-        if (!is_array($field)) {
-            $field = [$field => $direction];
-        }
-
-        foreach ($field as $f => $d) {
-            $this->orderBy[$f] = $d;
+        if (is_array($field)) {
+            foreach ($field as $f => $d) {
+                $this->orderBy[] = [
+                    'field' => $f,
+                    'direction' => $d,
+                ];
+            }
+        } else {
+            $this->orderBy[] = [
+                'field' => $field,
+                'direction' => ($field instanceof ExpressionInterface)? null : $direction
+            ];
         }
 
         return $this;
@@ -400,8 +406,10 @@ class Select
         }
 
         $parts = [];
-        foreach ($this->orderBy as $field => $direction) {
-            $parts[] = $this->dialect->quoteField($field).' '.$direction;
+        foreach ($this->orderBy as $order) {
+            $part = $this->dialect->quoteField($order['field']);
+            $part .= ($order['direction'] != null)? ' '.$order['direction'] : '';
+            $parts[] = $part;
         }
 
         return 'ORDER BY '.implode(', ', $parts);

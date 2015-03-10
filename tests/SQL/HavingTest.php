@@ -5,6 +5,7 @@ namespace Solution10\ORM\Tests\SQL;
 use PHPUnit_Framework_TestCase;
 use Solution10\ORM\SQL\ConditionBuilder;
 use Solution10\ORM\SQL\Dialect\ANSI;
+use Solution10\ORM\SQL\Expression;
 
 class HavingTest extends PHPUnit_Framework_TestCase
 {
@@ -186,5 +187,12 @@ class HavingTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($w, $w->resetHaving());
         $this->assertEquals([], $w->having());
         $this->assertEquals([], $w->getHavingParams());
+    }
+
+    public function testHavingExpressions()
+    {
+        $w = $this->havingObject();
+        $w->having(new Expression('COUNT(users.id)'), '>', 27);
+        $this->assertEquals('HAVING COUNT(users.id) > ?', $w->buildHavingSQL(new ANSI));
     }
 }

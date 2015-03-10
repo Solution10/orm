@@ -5,6 +5,7 @@ namespace Solution10\ORM\Tests\SQL;
 use PHPUnit_Framework_TestCase;
 use Solution10\ORM\SQL\ConditionBuilder;
 use Solution10\ORM\SQL\Dialect\ANSI;
+use Solution10\ORM\SQL\Expression;
 
 class WhereTest extends PHPUnit_Framework_TestCase
 {
@@ -186,5 +187,12 @@ class WhereTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($w, $w->resetWhere());
         $this->assertEquals([], $w->where());
         $this->assertEquals([], $w->getWhereParams());
+    }
+
+    public function testWhereExpressions()
+    {
+        $w = $this->whereObject();
+        $w->where(new Expression('logins'), '>', 27);
+        $this->assertEquals('WHERE logins > ?', $w->buildWhereSQL(new ANSI));
     }
 }

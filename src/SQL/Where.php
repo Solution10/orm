@@ -13,7 +13,7 @@ namespace Solution10\ORM\SQL;
  *              ->andWith('user', '=', 'Alex')
  *              ->andWith('country', '=', 'GB');
  *      })
- *      ->orWhere(function(Conditions $conditions) {
+ *      ->orWhere(function(ConditionBuilder $conditions) {
  *          $conditions->andWith('user', '=', 'Lucie');
  *          $conditions->andWith('country', '=', 'CA');
  *      });

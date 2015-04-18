@@ -3,20 +3,18 @@
 namespace Solution10\ORM\SQL;
 
 /**
- * Update
+ * Insert
  *
- * Generates an SQL query for an UPDATE operation.
+ * Generates an SQL query for an INSERT operation.
  *
  * @package     Solution10\ORM\SQL
  * @author      Alex Gisby<alex@solution10.com>
  * @license     MIT
  */
-class Update extends Query
+class Insert extends Query
 {
     use TableName;
     use Values;
-    use Where;
-    use Paginate;
 
     /**
      * Generates the full SQL statement for this query with all the composite parts.
@@ -30,18 +28,16 @@ class Update extends Query
         }
 
         $candidateParts = [
-            'UPDATE',
+            'INSERT INTO',
             $this->dialect->quoteTable($this->table),
             $this->valuesSQL(),
-            $this->buildWhereSQL($this->dialect),
-            $this->buildPaginateSQL()
         ];
 
         return implode(' ', $candidateParts);
     }
 
     /**
-     * Returns the values part of a query for an UPDATE statement (so key = value, key = value)
+     * Returns the values part of a query for an INSERT statement (so using VALUES())
      *
      * @return  string
      */
@@ -49,12 +45,15 @@ class Update extends Query
     {
         $sql = '';
         if (!empty($this->values)) {
-            $sql .= 'SET ';
-            $parts = [];
+            $keyParts = [];
+            $valueParts = [];
             foreach ($this->values as $field => $value) {
-                $parts[] = $this->dialect->quoteField($field).' = ?';
+                $keyParts[]     = $this->dialect->quoteField($field);
+                $valueParts[]   = '?';
             }
-            $sql .= implode(', ', $parts);
+
+            $sql .= '('.implode(', ', $keyParts).') ';
+            $sql .= 'VALUES ('.implode(', ', $valueParts).')';
         }
         return $sql;
     }
@@ -66,7 +65,7 @@ class Update extends Query
      */
     public function params()
     {
-        return array_merge(array_values($this->values), $this->getWhereParams());
+        return array_values($this->values);
     }
 
     /**
@@ -78,7 +77,6 @@ class Update extends Query
     {
         $this->table = null;
         $this->resetValues();
-        $this->resetWhere();
         return $this;
     }
 }

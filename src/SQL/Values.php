@@ -46,4 +46,15 @@ trait Values
         $this->values[$field] = $value;
         return $this;
     }
+
+    /**
+     * Resets the values to a default state.
+     *
+     * @return  $this
+     */
+    public function resetValues()
+    {
+        $this->values = [];
+        return $this;
+    }
 }

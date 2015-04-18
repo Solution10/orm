@@ -3,13 +3,13 @@
 namespace Solution10\ORM\Tests\SQL;
 
 use PHPUnit_Framework_TestCase;
-use Solution10\ORM\SQL\Update;
+use Solution10\ORM\SQL\Insert;
 
-class UpdateTest extends PHPUnit_Framework_TestCase
+class InsertTest extends PHPUnit_Framework_TestCase
 {
     public function testTable()
     {
-        $q = new Update();
+        $q = new Insert();
         $this->assertNull($q->table());
         $this->assertEquals($q, $q->table('users'));
         $this->assertEquals('users', $q->table());
@@ -17,7 +17,7 @@ class UpdateTest extends PHPUnit_Framework_TestCase
 
     public function testValues()
     {
-        $q = new Update();
+        $q = new Insert();
         $this->assertEquals([], $q->values());
         $this->assertEquals($q, $q->values([
             'name' => 'Alex',
@@ -31,40 +31,34 @@ class UpdateTest extends PHPUnit_Framework_TestCase
 
     public function testValue()
     {
-        $q = new Update();
+        $q = new Insert();
         $this->assertEquals(null, $q->value('name'));
         $this->assertEquals($q, $q->value('name', 'Alex'));
         $this->assertEquals('Alex', $q->value('name'));
     }
 
-    public function testBasicUpdateSQL()
+    public function testBasicInsertSQL()
     {
-        $q = new Update();
+        $q = new Insert();
         $q
             ->table('users')
             ->values(['name' => 'Alex', 'city' => 'London'])
-            ->where('id', '=', 1)
-            ->limit(1)
         ;
 
-        $this->assertEquals('UPDATE "users" SET "name" = ?, "city" = ? WHERE "id" = ? LIMIT 1', (string)$q);
-        $this->assertEquals(['Alex', 'London', 1], $q->params());
+        $this->assertEquals('INSERT INTO "users" ("name", "city") VALUES (?, ?)', (string)$q);
+        $this->assertEquals(['Alex', 'London'], $q->params());
     }
 
-    public function testResetUpdate()
+    public function testResetInsert()
     {
-        $q = new Update();
+        $q = new Insert();
         $q
             ->table('users')
             ->values(['name' => 'Alex', 'city' => 'London'])
-            ->where('id', '=', 1)
-            ->limit(1)
         ;
 
         $this->assertEquals($q, $q->reset());
         $this->assertEquals('', (string)$q);
-        $this->assertEquals(null, $q->table());
         $this->assertEquals([], $q->values());
-        $this->assertEquals([], $q->getWhereParams());
     }
 }

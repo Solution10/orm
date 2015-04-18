@@ -2,8 +2,6 @@
 
 namespace Solution10\ORM\SQL;
 
-use Solution10\ORM\SQL\Dialect\ANSI;
-
 /**
  * Select
  *
@@ -13,16 +11,11 @@ use Solution10\ORM\SQL\Dialect\ANSI;
  * @author      Alex Gisby<alex@solution10.com>
  * @license     MIT
  */
-class Select
+class Select extends Query
 {
     use Where;
     use Having;
     use Paginate;
-
-    /**
-     * @var     DialectInterface
-     */
-    protected $dialect;
 
     /**
      * @var     array
@@ -48,16 +41,6 @@ class Select
      * @var     array
      */
     protected $orderBy = [];
-
-    /**
-     * Pass in a dialect, otherwise it'll assume ANSI SQL.
-     *
-     * @param   DialectInterface|null    $dialect
-     */
-    public function __construct(DialectInterface $dialect = null)
-    {
-        $this->dialect = ($dialect === null)? new ANSI() : $dialect;
-    }
 
     /*
      * ------------------ SELECT ---------------------
@@ -459,16 +442,6 @@ class Select
         }
 
         return implode(" ", $realParts);
-    }
-
-    /**
-     * Serves as a shortcut for sql()
-     *
-     * @return  string
-     */
-    public function __toString()
-    {
-        return $this->sql();
     }
 
     /**

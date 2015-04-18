@@ -63,6 +63,7 @@ class ConditionBuilder
      */
     protected function addCondition($join, $field, $operator, $value)
     {
+        $newParams = [];
         if ($field instanceof \Closure) {
             // Return and merge the result of these queries
             $subQuery = new ConditionBuilder();
@@ -71,7 +72,8 @@ class ConditionBuilder
                 'join' => $join,
                 'sub' => $subQuery->conditions()
             ];
-            $this->params = array_merge($this->params, $subQuery->getConditionParameters());
+            $newParams = $subQuery->getConditionParameters();
+//            $this->params = array_merge($this->params, $subQuery->getConditionParameters());
         } else {
             $this->parts[] = [
                 'join' => $join,
@@ -79,8 +81,14 @@ class ConditionBuilder
                 'operator' => $operator,
                 'value' => $value
             ];
-            $this->params[] = $value;
+            $newParams = $value;
         }
+
+        if (!is_array($newParams)) {
+            $newParams = [$newParams];
+        }
+
+        $this->params = array_merge($this->params, $newParams);
 
         return $this;
     }
@@ -123,7 +131,16 @@ class ConditionBuilder
                 $where .= $this->buildPartsSQL($c['sub'], $dialect);
                 $where .= ')';
             } else {
-                $where .= $dialect->quoteField($c['field']).' '.$c['operator'].' ?';
+                $where .= $dialect->quoteField($c['field']).' '.$c['operator'].' ';
+                if (is_array($c['value'])) {
+                    $inParts = [];
+                    for ($i = 0; $i < count($c['value']); $i ++) {
+                        $inParts[] = '?';
+                    }
+                    $where .= '('.implode(', ', $inParts).')';
+                } else {
+                    $where .= '?';
+                }
             }
         }
         $where = trim(preg_replace('/^(AND|OR) /', '', trim($where)));

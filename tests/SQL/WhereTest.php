@@ -195,4 +195,45 @@ class WhereTest extends PHPUnit_Framework_TestCase
         $w->where(new Expression('logins'), '>', 27);
         $this->assertEquals('WHERE logins > ?', $w->buildWhereSQL(new ANSI));
     }
+
+    public function testWhereIn()
+    {
+        $w = $this->whereObject();
+
+        $w->where('id', 'IN', [27, 28, 29]);
+        $this->assertEquals([
+            'join' => 'AND',
+            'field' => 'id',
+            'operator' => 'IN',
+            'value' => [27, 28, 29]
+        ], $w->where()[0]);
+        $this->assertEquals('WHERE "id" IN (?, ?, ?)', $w->buildWhereSQL(new ANSI));
+        $this->assertEquals([27, 28, 29], $w->getWhereParams());
+    }
+
+    public function testWhereNotIn()
+    {
+        $w = $this->whereObject();
+
+        $w->where('id', 'NOT IN', [27, 28, 29]);
+        $this->assertEquals([
+            'join' => 'AND',
+            'field' => 'id',
+            'operator' => 'NOT IN',
+            'value' => [27, 28, 29]
+        ], $w->where()[0]);
+        $this->assertEquals('WHERE "id" NOT IN (?, ?, ?)', $w->buildWhereSQL(new ANSI));
+        $this->assertEquals([27, 28, 29], $w->getWhereParams());
+    }
+
+    public function testWhereInPlaysNicely()
+    {
+        $w = $this->whereObject();
+        $w
+            ->where('active', '=', 1)
+            ->where('id', 'IN', [27, 28, 29]);
+
+        $this->assertEquals('WHERE "active" = ? AND "id" IN (?, ?, ?)', $w->buildWhereSQL(new ANSI));
+        $this->assertEquals([1, 27, 28, 29], $w->getWhereParams());
+    }
 }

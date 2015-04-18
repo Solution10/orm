@@ -42,4 +42,16 @@ class DeleteTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(null, $q->table());
         $this->assertEquals([], $q->getWhereParams());
     }
+
+    public function testDeleteIn()
+    {
+        $q = new Delete();
+        $q
+            ->table('users')
+            ->where('id', 'IN', [27, 28, 29])
+            ->where('name', '!=', 'Alex');
+
+        $this->assertEquals('DELETE FROM "users" WHERE "id" IN (?, ?, ?) AND "name" != ?', (string)$q);
+        $this->assertEquals([27, 28, 29, 'Alex'], $q->params());
+    }
 }

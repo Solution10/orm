@@ -35,7 +35,7 @@ class Delete extends Query
             $this->buildPaginateSQL()
         ];
 
-        return implode(' ', $candidateParts);
+        return trim(implode(' ', $candidateParts));
     }
 
     /**

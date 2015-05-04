@@ -14,20 +14,31 @@ namespace Solution10\ORM\Repository;
  */
 interface RepoItemInterface
 {
+//    public function entityName();
+//
+//    public function toArray();
+
+    /**
+     * Returns the mapper object associated with this entity
+     *
+     * @return  Mapper
+     */
+    public function mapper();
+
     /**
      * Called when creating a new item from the repo
      *
      * @param   mixed   $repoData   Data from the repo in whatever form makes sense
      * @return  RepoItemInterface
      */
-    public static function newFromRepoData($repoData);
+//    public static function newFromRepoData($repoData);
 
     /**
      * Returns this item in a format that the Repo will be able to understand and persist.
      *
      * @return  mixed
      */
-    public function repoRepresentation();
+//    public function repoRepresentation();
 
     /**
      * Whether this resource was loaded from the data store or not

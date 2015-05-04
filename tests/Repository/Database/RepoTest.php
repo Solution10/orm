@@ -15,7 +15,7 @@ class RepoTest extends \PHPUnit_Framework_TestCase
 
     public function setup()
     {
-        $this->conn = new \PDO('sqlite::memory');
+        $this->conn = new \PDO('sqlite::memory:');
 
         $this->conn->query('DROP TABLE IF EXISTS users');
         $this->conn->query('DROP TABLE IF EXISTS orders');

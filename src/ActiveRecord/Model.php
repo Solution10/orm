@@ -3,6 +3,10 @@
 namespace Solution10\ORM\ActiveRecord;
 
 use Solution10\ORM\ActiveRecord\Exception\ValidationException;
+use Solution10\SQL\Delete;
+use Solution10\SQL\Insert;
+use Solution10\SQL\Select;
+use Solution10\SQL\Update;
 use Valitron\Validator;
 
 abstract class Model
@@ -257,10 +261,13 @@ abstract class Model
 
         $createData = $this->prepareDataForSave($this->changed);
 
-        $conn->insert(
-            $this->meta->table(),
-            $createData
-        );
+        $query = new Insert($conn->dialect());
+        $query
+            ->table($this->meta->table())
+            ->values($createData);
+
+        $stmt = $conn->prepare((string)$query);
+        $stmt->execute($query->params());
         $iid = $conn->lastInsertId();
 
         // Mark it as saved and add in the ID
@@ -286,11 +293,20 @@ abstract class Model
         $pkField = $this->meta->primaryKey();
         $updateData = $this->prepareDataForSave($this->changed);
 
-        $conn->update(
-            $this->meta->table(),
-            $updateData,
-            [$pkField => $this->original[$pkField]]
-        );
+        $query = new Update($conn->dialect());
+        $query
+            ->table($this->meta->table())
+            ->values($updateData)
+            ->where($pkField, '=', $this->original[$pkField]);
+
+        $stmt = $conn->prepare((string)$query);
+        $stmt->execute($query->params());
+
+//        $conn->update(
+//            $this->meta->table(),
+//            $updateData,
+//            [$pkField => $this->original[$pkField]]
+//        );
 
         // Mark it as saved
         $this->setAsSaved();
@@ -427,10 +443,14 @@ abstract class Model
         if ($this->isLoaded()) {
             $conn = $this->meta->connectionInstance();
             $pkField = $this->meta->primaryKey();
-            $conn->delete(
-                $this->meta->table(),
-                [$pkField => $this->get($pkField)]
-            );
+
+            $query = new Delete($conn->dialect());
+            $query
+                ->table($this->meta->table())
+                ->where($pkField, '=', $this->get($pkField));
+
+            $stmt = $conn->prepare((string)$query);
+            $stmt->execute($query->params());
         }
 
         return $this;

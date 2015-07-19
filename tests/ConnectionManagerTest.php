@@ -2,6 +2,7 @@
 
 namespace Solution10\ORM\Tests\ActiveRecord;
 
+use Solution10\ORM\Connection;
 use Solution10\ORM\ConnectionManager;
 
 class ConnectionManagerTest extends \PHPUnit_Framework_TestCase
@@ -19,12 +20,8 @@ class ConnectionManagerTest extends \PHPUnit_Framework_TestCase
     {
         $i = new ConnectionManager();
 
-        $params = [
-            'driver' => 'pdo_sqlite',
-            'path' => __DIR__.'/tests.db',
-        ];
-
-        $this->assertEquals($i, $i->registerConnection('default', $params));
+        $connection = new Connection('sqlite::memory:');
+        $this->assertEquals($i, $i->registerConnection('default', $connection));
         $this->assertTrue(in_array('default', array_keys($i->registeredConnections())));
     }
 
@@ -32,24 +29,18 @@ class ConnectionManagerTest extends \PHPUnit_Framework_TestCase
     {
         $i = new ConnectionManager();
 
-        $params = [
-            'driver' => 'pdo_sqlite',
-            'path' => __DIR__.'/tests.db',
-        ];
+        $connection = new Connection('sqlite::memory:');
+        $i->registerConnection('default', $connection);
 
-        $i->registerConnection('default', $params);
         $conn = $i->connection('default');
-        $this->assertInstanceOf('Doctrine\\DBAL\\Connection', $conn);
+        $this->assertEquals($connection, $conn);
     }
 
     public function testConnectionReuse()
     {
         $i = new ConnectionManager();
 
-        $i->registerConnection('default', [
-                'driver' => 'pdo_sqlite',
-                'path' => __DIR__.'/tests.db',
-            ]);
+        $i->registerConnection('default', new Connection('sqlite::memory:'));
 
         $conn = $i->connection('default');
         $conn->mark = 'green';

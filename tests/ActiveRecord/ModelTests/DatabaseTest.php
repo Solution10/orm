@@ -3,6 +3,7 @@
 namespace Solution10\ORM\Tests\ActiveRecord\ModelTests;
 
 use Solution10\ORM\ActiveRecord\Model;
+use Solution10\ORM\Connection;
 use Solution10\ORM\ConnectionManager;
 use PHPUnit_Framework_TestCase;
 use Solution10\ORM\Tests\ActiveRecord\Stubs\User;
@@ -31,10 +32,8 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
         $c = new ConnectionManager();
         $c->registerInstance();
 
-        ConnectionManager::instance()->registerConnection('default', [
-            'driver' => 'pdo_sqlite',
-            'path' => __DIR__.'/../tests.db',
-        ]);
+        $connection = new Connection('sqlite::memory:');
+        ConnectionManager::instance()->registerConnection('default', $connection);
 
         // Clear the database and create our test tables:
         $this->conn = ConnectionManager::instance()->connection('default');
@@ -144,6 +143,7 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
 
     public function testQueryingForItems()
     {
+        $this->markTestSkipped('Awaiting real code');
         $this->conn->insert('users', ['name' => 'Alex']);
         $this->conn->insert('users', ['name' => 'Lucie']);
         $this->conn->insert('users', ['name' => 'Archibald']);
@@ -161,6 +161,7 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
 
     public function testRawQueries()
     {
+        $this->markTestSkipped('Awaiting real code');
         $this->conn->insert('users', ['name' => 'Alex']);
         $this->conn->insert('users', ['name' => 'Lucie']);
         $this->conn->insert('users', ['name' => 'Archibald']);

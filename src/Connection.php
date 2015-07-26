@@ -2,8 +2,11 @@
 
 namespace Solution10\ORM;
 
+use Solution10\SQL\Delete;
 use Solution10\SQL\Dialect\ANSI;
 use Solution10\SQL\Dialect\MySQL;
+use Solution10\SQL\Insert;
+use Solution10\SQL\Update;
 
 /**
  * Connection
@@ -29,7 +32,68 @@ class Connection extends \PDO
     }
 
     /**
-     * A basic fetchAll implementation. Not to be used in production.
+     * Basic insert into a table.
+     *
+     * @param   string  $tableName
+     * @param   array   $data
+     * @return  int     Insert ID.
+     */
+    public function insert($tableName, array $data)
+    {
+        $q = new Insert($this->dialect());
+        $q->table($tableName);
+        $q->values($data);
+        $stmt = $this->prepare((string)$q);
+        $stmt->execute($q->params());
+        return $this->lastInsertId();
+    }
+
+    /**
+     * Basic update
+     *
+     * @param   string  $tableName
+     * @param   array   $data
+     * @param   array   $where
+     * @return  $this
+     */
+    public function update($tableName, array $data, array $where)
+    {
+        $q = new Update($this->dialect());
+        $q
+            ->table($tableName)
+            ->values($data);
+
+        foreach ($where as $k => $v) {
+            $q->where($k, '=', $v);
+        }
+
+        $stmt = $this->prepare((string)$q);
+        $stmt->execute($q->params());
+        return $this;
+    }
+
+    /**
+     * Deletes a row from the database
+     *
+     * @param   string  $tableName
+     * @param   array   $where
+     * @return  $this
+     */
+    public function delete($tableName, array $where)
+    {
+        $q = new Delete($this->dialect());
+        $q->table($tableName);
+        foreach ($where as $k => $v) {
+            $q->where($k, '=', $v);
+        }
+
+        $stmt = $this->prepare((string)$q);
+        $stmt->execute($q->params());
+        return $this;
+    }
+
+    /**
+     * A basic fetchAll implementation.
      *
      * @param   string  $sql
      * @param   array   $params
@@ -39,6 +103,54 @@ class Connection extends \PDO
     {
         $stmt = $this->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetchAll();
+        $result = $stmt->fetchAll();
+        $result = $this->cleanResult($result);
+        return $result;
+    }
+
+    /**
+     * Fetches a single row of the result.
+     *
+     * @param   string  $sql
+     * @param   array   $params
+     * @return  array
+     */
+    public function fetch($sql, array $params = null)
+    {
+        $stmt = $this->prepare($sql);
+        $stmt->execute($params);
+        $result = $stmt->fetch();
+        $result = $this->cleanResult($result);
+        return $result;
+    }
+
+    /**
+     * Removes the annoying numeric keys that PDO puts in query results.
+     *
+     * @param   array   $result
+     * @return  array
+     */
+    protected function cleanResult(array $result = array())
+    {
+        if (count($result) == 0) {
+            return $result;
+        }
+
+        // Are we in a single result, or multi-result?
+        $single = false;
+        if (!is_array($result[0])) {
+            $result = [$result];
+            $single = true;
+        }
+
+        foreach ($result as &$row) {
+            foreach ($row as $key => $value) {
+                if (is_numeric($key)) {
+                    unset($row[$key]);
+                }
+            }
+        }
+
+        return ($single)? $result[0] : $result;
     }
 }

@@ -7,7 +7,6 @@ use Solution10\ORM\Connection;
 use Solution10\ORM\ConnectionManager;
 use PHPUnit_Framework_TestCase;
 use Solution10\ORM\Tests\ActiveRecord\Stubs\User;
-use Solution10\ORM\Tests\ActiveRecord\Stubs\UserValidated;
 
 /**
  * These tests focus on the behaviours that DO require a database connection.
@@ -20,7 +19,7 @@ use Solution10\ORM\Tests\ActiveRecord\Stubs\UserValidated;
 class DatabaseTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * @var     \Doctrine\DBAL\Connection
+     * @var     \Solution10\ORM\Connection
      */
     protected $conn;
 
@@ -143,12 +142,11 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
 
     public function testQueryingForItems()
     {
-        $this->markTestSkipped('Awaiting real code');
         $this->conn->insert('users', ['name' => 'Alex']);
         $this->conn->insert('users', ['name' => 'Lucie']);
         $this->conn->insert('users', ['name' => 'Archibald']);
 
-        $results = User::query('SELECT * FROM users');
+        $results = User::query()->fetchAll();
 
         $this->assertInstanceOf('Solution10\\ORM\\ActiveRecord\\Resultset', $results);
         $this->assertCount(3, $results);
@@ -159,15 +157,19 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('Archibald', $results[2]->get('name'));
     }
 
-    public function testRawQueries()
+    public function testCountQueries()
     {
-        $this->markTestSkipped('Awaiting real code');
         $this->conn->insert('users', ['name' => 'Alex']);
         $this->conn->insert('users', ['name' => 'Lucie']);
         $this->conn->insert('users', ['name' => 'Archibald']);
 
-        $result = User::query('SELECT COUNT(*) as aggr FROM users', [], [], User::RAW);
-        $this->assertTrue(is_array($result));
-        $this->assertEquals(3, $result[0]['aggr']);
+        $result = User::query()->count();
+        $this->assertEquals(3, $result);
+
+        $result = User::query()->where('name', '=', 'Alex')->count();
+        $this->assertEquals(1, $result);
+
+        $result = User::query()->where('name', '=', 'George')->count();
+        $this->assertEquals(0, $result);
     }
 }

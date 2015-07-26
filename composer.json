@@ -16,7 +16,6 @@
         "solution10/collection": "~1.0",
         "solution10/sql": "~1.1",
         "doctrine/inflector": "~1.0",
-        "doctrine/dbal": "~2.4",
         "vlucas/valitron": "~1.2"
     },
     "require-dev": {

@@ -3,21 +3,34 @@
 namespace Solution10\ORM\ActiveRecord;
 
 use Solution10\ORM\ActiveRecord\Exception\ValidationException;
-use Solution10\SQL\Delete;
-use Solution10\SQL\Insert;
-use Solution10\SQL\Select;
-use Solution10\SQL\Update;
+use Solution10\ORM\Connection;
+use Solution10\SQL\Expression;
 use Valitron\Validator;
 
+/**
+ * Model
+ *
+ * Base model class. Represents instances and runs queries.
+ *
+ * @package     Solution10\ORM\ActiveRecord
+ * @author      Alex Gisby<alex@solution10.com>
+ * @license     MIT
+ */
 abstract class Model
 {
-    const SINGLE = 1;
-    const MANY = 2;
-    const RAW = 3;
-
+    /**
+     * @var     array
+     */
     protected $original = array();
+
+    /**
+     * @var     array
+     */
     protected $changed = array();
 
+    /**
+     * @var     Meta
+     */
     protected $meta;
 
     /**
@@ -257,18 +270,10 @@ abstract class Model
      */
     protected function doCreate()
     {
-        $conn = $this->meta->connectionInstance();
-
         $createData = $this->prepareDataForSave($this->changed);
 
-        $query = new Insert($conn->dialect());
-        $query
-            ->table($this->meta->table())
-            ->values($createData);
-
-        $stmt = $conn->prepare((string)$query);
-        $stmt->execute($query->params());
-        $iid = $conn->lastInsertId();
+        $conn = $this->meta->connectionInstance();
+        $iid = $conn->insert($this->meta->table(), $createData);
 
         // Mark it as saved and add in the ID
         $this->setAsSaved();
@@ -288,25 +293,11 @@ abstract class Model
             return $this;
         }
 
-        $conn = $this->meta->connectionInstance();
-
         $pkField = $this->meta->primaryKey();
         $updateData = $this->prepareDataForSave($this->changed);
 
-        $query = new Update($conn->dialect());
-        $query
-            ->table($this->meta->table())
-            ->values($updateData)
-            ->where($pkField, '=', $this->original[$pkField]);
-
-        $stmt = $conn->prepare((string)$query);
-        $stmt->execute($query->params());
-
-//        $conn->update(
-//            $this->meta->table(),
-//            $updateData,
-//            [$pkField => $this->original[$pkField]]
-//        );
+        $conn = $this->meta->connectionInstance();
+        $conn->update($this->meta->table(), $updateData, [$pkField => $this->original[$pkField]]);
 
         // Mark it as saved
         $this->setAsSaved();
@@ -425,12 +416,10 @@ abstract class Model
 
         $meta = $instance->meta();
 
-        return self::query('
-            SELECT *
-            FROM '.$meta->table().'
-            WHERE '.$meta->primaryKey().' = ?
-            LIMIT 1
-        ', [$id], [], self::SINGLE);
+        return self::query()
+            ->where($meta->primaryKey(), '=', $id)
+            ->limit(1)
+            ->fetch();
     }
 
     /**
@@ -441,16 +430,10 @@ abstract class Model
     public function delete()
     {
         if ($this->isLoaded()) {
-            $conn = $this->meta->connectionInstance();
             $pkField = $this->meta->primaryKey();
 
-            $query = new Delete($conn->dialect());
-            $query
-                ->table($this->meta->table())
-                ->where($pkField, '=', $this->get($pkField));
-
-            $stmt = $conn->prepare((string)$query);
-            $stmt->execute($query->params());
+            $conn = $this->meta->connectionInstance();
+            $conn->delete($this->meta->table(), [$pkField => $this->original[$pkField]]);
         }
 
         return $this;
@@ -461,39 +444,83 @@ abstract class Model
      */
 
     /**
-     * Runs a query against this model, returning either an instance of this model, or a Resultset
+     * Provides the starting point for a query against this model with
+     * the select() and from() portions already filled in.
      *
-     * @param   string  $query      Query to run
-     * @param   array   $params     Params to inject into the query
-     * @param   array   $types      Parameter type hints for the query
-     * @param   int     $return     Return type: self::SINGLE or self::MANY
-     * @return  Model|Resultset|array
+     * @return  Select
      */
-    public static function query($query, array $params = [], array $types = [], $return = self::MANY)
+    public static function query()
     {
         $thisClass = get_called_class();
         $instance = self::factory($thisClass);
 
         $meta = $instance->meta();
-        /* @var $conn \Doctrine\DBAL\Connection */
+
+        $q = new Select();
+        $q
+            ->select('*')
+            ->from($meta->table())
+            ->flag('model', $thisClass)
+        ;
+        return $q;
+    }
+
+    /**
+     * Runs a pre-made query against the database and returns the result.
+     * Will not add anything for you, assumes you've done what you need to.
+     *
+     * @param   Select  $select
+     * @return  Model|Resultset|array
+     */
+    public static function fetchQuery(Select $select)
+    {
+        $thisClass = get_called_class();
+        $instance = self::factory($thisClass);
+
+        $meta = $instance->meta();
+        /* @var $conn Connection */
         $conn = $meta->connectionInstance();
 
-        $result = $conn->fetchAll($query, $params, $types);
-
-        if ($return === self::SINGLE) {
+        $result = $conn->fetchAll((string)$select, $select->params());
+        $fetchMode = ($select->flag('fetch') == 'one')? 'one' : 'all';
+        if ($fetchMode === 'one') {
             if (count($result) > 0) {
                 $instance->setRaw($result[0]);
                 $instance->setAsSaved();
             }
-            $toReturn = $instance;
-        } elseif ($return === self::MANY) {
-            $c = new Resultset($result);
-            $c->resultModel($instance);
-            $toReturn = $c;
-        } else {
-            $toReturn = $result;
+            return $instance;
         }
 
-        return $toReturn;
+        $c = new Resultset($result);
+        $c->resultModel($instance);
+        return $c;
+    }
+
+    /**
+     * Performs a count query. This will reset certain fields and modify select() to
+     * contain only this models table.
+     *
+     * @param   Select  $select
+     * @return  int
+     */
+    public static function fetchCount(Select $select)
+    {
+        $thisClass = get_called_class();
+        $instance = self::factory($thisClass);
+
+        $meta = $instance->meta();
+        /* @var $conn Connection */
+        $conn = $meta->connectionInstance();
+
+        $select
+            ->resetSelect()
+            ->select(new Expression('COUNT('.$meta->primaryKey().')'), 'aggr')
+            ->resetOrderBy()
+            ->resetLimit()
+            ->resetOffset()
+        ;
+
+        $result = $conn->fetch((string)$select, $select->params());
+        return array_key_exists('aggr', $result)? $result['aggr'] : 0;
     }
 }

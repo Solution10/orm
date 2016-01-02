@@ -40,6 +40,8 @@ class Connection extends \PDO
      */
     public function insert($tableName, array $data)
     {
+        $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+
         $q = new Insert($this->dialect());
         $q->table($tableName);
         $q->values($data);
@@ -58,6 +60,8 @@ class Connection extends \PDO
      */
     public function update($tableName, array $data, array $where)
     {
+        $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+
         $q = new Update($this->dialect());
         $q
             ->table($tableName)
@@ -81,6 +85,8 @@ class Connection extends \PDO
      */
     public function delete($tableName, array $where)
     {
+        $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+
         $q = new Delete($this->dialect());
         $q->table($tableName);
         foreach ($where as $k => $v) {
@@ -101,6 +107,8 @@ class Connection extends \PDO
      */
     public function fetchAll($sql, array $params = null)
     {
+        $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+
         $stmt = $this->prepare($sql);
         $stmt->execute($params);
         $result = $stmt->fetchAll();
@@ -117,6 +125,8 @@ class Connection extends \PDO
      */
     public function fetch($sql, array $params = null)
     {
+        $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+
         $stmt = $this->prepare($sql);
         $stmt->execute($params);
         $result = $stmt->fetch();

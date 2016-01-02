@@ -456,7 +456,7 @@ abstract class Model
 
         $meta = $instance->meta();
 
-        $q = new Select();
+        $q = new Select($meta->connectionInstance()->dialect());
         $q
             ->select('*')
             ->from($meta->table())

@@ -6,6 +6,7 @@ use Solution10\SQL\Delete;
 use Solution10\SQL\Dialect\ANSI;
 use Solution10\SQL\Dialect\MySQL;
 use Solution10\SQL\Insert;
+use Solution10\SQL\Query;
 use Solution10\SQL\Update;
 
 /**
@@ -132,6 +133,20 @@ class Connection extends \PDO
         $result = $stmt->fetch();
         $result = $this->cleanResult($result);
         return $result;
+    }
+
+    /**
+     * Runs any query against the database
+     *
+     * @param   Query   $query
+     * @return  \PDOStatement
+     */
+    public function executeQuery(Query $query)
+    {
+        $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $stmt = $this->prepare((string)$query);
+        $stmt->execute($query->params());
+        return $stmt;
     }
 
     /**

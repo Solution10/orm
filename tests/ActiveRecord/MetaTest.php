@@ -3,7 +3,7 @@
 namespace Solution10\ORM\Tests\ActiveRecord;
 
 use Solution10\ORM\ActiveRecord\Meta;
-use Solution10\ORM\ActiveRecord\Field\String;
+use Solution10\ORM\ActiveRecord\Field\Text;
 
 class MetaTest extends \PHPUnit_Framework_TestCase
 {
@@ -54,7 +54,7 @@ class MetaTest extends \PHPUnit_Framework_TestCase
 
     public function testSetGetField()
     {
-        $field = new String();
+        $field = new Text();
         $meta = new Meta('MyApp\\Models\\User');
 
         $this->assertEquals($meta, $meta->field('username', $field));

@@ -13,7 +13,7 @@ class UserValidated extends Model
     {
         return $meta
             ->table('users')
-            ->field('name', new Field\String([
+            ->field('name', new Field\Text([
                 'rules' => [
                     ['required'],
                     ['lengthMin', 2]

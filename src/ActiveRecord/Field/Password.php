@@ -4,7 +4,7 @@ namespace Solution10\ORM\ActiveRecord\Field;
 
 use Solution10\ORM\ActiveRecord\Model;
 
-class Password extends String
+class Password extends Text
 {
     protected $required = ['hashWith'];
 

@@ -11,6 +11,6 @@ class User extends Model
     public static function init(Meta $meta)
     {
         return $meta
-                ->field('name', new Field\String);
+                ->field('name', new Field\Text);
     }
 }

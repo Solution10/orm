@@ -12,7 +12,7 @@ class BlogPost extends Model
     {
         return $meta
                 ->table('posts')
-                ->field('title', new Field\String)
+                ->field('title', new Field\Text)
                 ->field('entry', new Field\Text);
     }
 }

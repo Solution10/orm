@@ -22,6 +22,11 @@ use Solution10\SQL\Update;
 class Connection extends \PDO
 {
     /**
+     * @var     LoggerInterface
+     */
+    protected $logger = null;
+
+    /**
      * Returns the correct Solution10\SQL\DialectInterface instance for this connection
      *
      * @return  \Solution10\SQL\DialectInterface
@@ -30,6 +35,28 @@ class Connection extends \PDO
     {
         $driver = $this->getAttribute(self::ATTR_DRIVER_NAME);
         return ($driver === 'mysql')? new MySQL() : new ANSI();
+    }
+
+    /**
+     * Sets the connection logger to use.
+     *
+     * @param   LoggerInterface     $logger
+     * @return  $this
+     */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+        return $this;
+    }
+
+    /**
+     * Returns the logger on this instance.
+     *
+     * @return  LoggerInterface
+     */
+    public function logger()
+    {
+        return $this->logger;
     }
 
     /**
@@ -47,7 +74,7 @@ class Connection extends \PDO
         $q->table($tableName);
         $q->values($data);
         $stmt = $this->prepare((string)$q);
-        $stmt->execute($q->params());
+        $this->doQuery($stmt, $q->params());
         return $this->lastInsertId();
     }
 
@@ -73,7 +100,7 @@ class Connection extends \PDO
         }
 
         $stmt = $this->prepare((string)$q);
-        $stmt->execute($q->params());
+        $this->doQuery($stmt, $q->params());
         return $this;
     }
 
@@ -95,7 +122,7 @@ class Connection extends \PDO
         }
 
         $stmt = $this->prepare((string)$q);
-        $stmt->execute($q->params());
+        $this->doQuery($stmt, $q->params());
         return $this;
     }
 
@@ -111,7 +138,7 @@ class Connection extends \PDO
         $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         $stmt = $this->prepare($sql);
-        $stmt->execute($params);
+        $stmt = $this->doQuery($stmt, $params);
         $result = $stmt->fetchAll();
         $result = $this->cleanResult($result);
         return $result;
@@ -129,7 +156,7 @@ class Connection extends \PDO
         $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         $stmt = $this->prepare($sql);
-        $stmt->execute($params);
+        $stmt = $this->doQuery($stmt, $params);
         $result = $stmt->fetch();
         $result = $this->cleanResult($result);
         return $result;
@@ -145,7 +172,27 @@ class Connection extends \PDO
     {
         $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         $stmt = $this->prepare((string)$query);
-        $stmt->execute($query->params());
+        $stmt = $this->doQuery($stmt, $query->params());
+        return $stmt;
+    }
+
+    /**
+     * Executes a query, that we'll log and monitor against.
+     *
+     * @param   \PDOStatement       $stmt
+     * @param   array|null          $params
+     * @return  \PDOStatement
+     */
+    public function doQuery(\PDOStatement $stmt, array $params = null)
+    {
+        $start = microtime(true);
+        $stmt->execute($params);
+        $end = microtime(true);
+
+        if ($this->logger) {
+            $this->logger->onQuery($stmt->queryString, $params, ($end - $start) * 1000);
+        }
+
         return $stmt;
     }
 

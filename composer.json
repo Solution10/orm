@@ -12,11 +12,12 @@
     ],
     "require": {
         "php": ">= 5.4",
-        "solution10/managed-instance": "~1.0",
-        "solution10/collection": "~1.0",
-        "solution10/sql": "~1.1",
-        "doctrine/inflector": "~1.0",
-        "vlucas/valitron": "~1.2"
+        "solution10/managed-instance": "^1.0",
+        "solution10/collection": "^1.0",
+        "solution10/sql": "^1.1",
+        "doctrine/inflector": "^1.0",
+        "vlucas/valitron": "^1.2",
+        "psr/log": "^1.0"
     },
     "require-dev": {
         "solution10/devkit": "~1.0"

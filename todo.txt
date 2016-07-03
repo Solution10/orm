@@ -1,3 +1,4 @@
 - Relationships
-- DocBlocks
+- DocBlock generator script
+- Caching support
 - Documentation! Yay!

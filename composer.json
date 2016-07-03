@@ -20,7 +20,8 @@
         "psr/log": "^1.0"
     },
     "require-dev": {
-        "solution10/devkit": "~1.0"
+        "phpunit/phpunit": "^5.0",
+        "squizlabs/php_codesniffer": "^2.6"
     },
     "autoload": {
         "psr-4": {

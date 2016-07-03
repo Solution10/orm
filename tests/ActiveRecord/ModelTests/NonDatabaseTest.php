@@ -5,6 +5,7 @@ namespace Solution10\ORM\Tests\ActiveRecord\ModelTests;
 use Solution10\ORM\ActiveRecord\Exception\ValidationException;
 use Solution10\ORM\ActiveRecord\Model;
 use Solution10\ORM\Tests\ActiveRecord\Stubs\User;
+use Valitron\Validator;
 
 /**
  * These tests focus on the behaviours that don't require a database connection.
@@ -168,6 +169,15 @@ class NonDatabaseTest extends \PHPUnit_Framework_TestCase
     /**
      * ------------------- Validation tests ------------------
      */
+
+    public function testValidatorHookDefault()
+    {
+        $v = new Validator(['name' => 'Alex']);
+        $this->assertEquals(
+            $v,
+            Model::validatorHook($v)
+        );
+    }
 
     /**
      * @expectedException   \Solution10\ORM\ActiveRecord\Exception\ValidationException

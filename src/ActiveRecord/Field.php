@@ -4,6 +4,15 @@ namespace Solution10\ORM\ActiveRecord;
 
 use Solution10\ORM\ActiveRecord\Exception\FieldException;
 
+/**
+ * Field
+ *
+ * Base class for all other Fields.
+ *
+ * @package     Solution10\ORM\ActiveRecord
+ * @author      Alex Gisby<alex@solution10.com>
+ * @license     MIT
+ */
 abstract class Field implements FieldInterface
 {
     protected $options = [
@@ -50,7 +59,7 @@ abstract class Field implements FieldInterface
      * @param   mixed   $value  The "raw" Value (read from database)
      * @return  mixed   The $value, with any changes made.
      */
-    public function get(Model $model, $field, $value)
+    public function databaseToPHP(Model $model, $field, $value)
     {
         return $value;
     }
@@ -79,7 +88,7 @@ abstract class Field implements FieldInterface
      * @param   mixed   $value  The value passed by the user.
      * @return  mixed   The $value, with any changes made
      */
-    public function save(Model $model, $field, $value)
+    public function phpToDatabase(Model $model, $field, $value)
     {
         return $value;
     }

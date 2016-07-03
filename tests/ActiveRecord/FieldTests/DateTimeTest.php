@@ -49,6 +49,9 @@ class DateTimeTests extends FieldTests
         // DateTime Object:
         $ndt = new NativeDateTime('2014-07-02 12:31:47', new DateTimeZone('Europe/London'));
         $this->assertEquals(1404300707, $d->set($m, 'created', $ndt));
+
+        // Null:
+        $this->assertNull($d->set($m, 'created', null));
     }
 
     public function testSetWithFormat()
@@ -63,7 +66,7 @@ class DateTimeTests extends FieldTests
         // Testing with timestamp:
         $now = time();
         $expected = (new NativeDateTime(null, new DateTimeZone('Europe/London')))
-            ->setTimeStamp($now)
+            ->setTimestamp($now)
             ->format('Y-m-d H:i:s');
         $this->assertEquals($expected, $d->set($m, 'created', $now));
 
@@ -75,7 +78,7 @@ class DateTimeTests extends FieldTests
         $this->assertEquals('2014-07-02 12:31:47', $d->set($m, 'created', $ndt));
     }
 
-    public function testGet()
+    public function testDatabaseToPHP()
     {
         $m = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
         $zone = new DateTimeZone('Europe/London');
@@ -87,17 +90,23 @@ class DateTimeTests extends FieldTests
         // Testing with a timestamp:
         $now = time();
         $expected = (new NativeDateTime(null, $zone))->setTimestamp($now);
-        $this->assertInstanceOf('\DateTime', $d->get($m, 'created', $now));
-        $this->assertEquals($expected->format('Y-m-d H:i:s'), $d->get($m, 'created', $now)->format('Y-m-d H:i:s'));
+        $this->assertInstanceOf('\DateTime', $d->databaseToPHP($m, 'created', $now));
+        $this->assertEquals(
+            $expected->format('Y-m-d H:i:s'),
+            $d->databaseToPHP($m, 'created', $now)->format('Y-m-d H:i:s')
+        );
 
         // Testing with a date style format from a db:
         $date = '2014-07-02';
-        $this->assertInstanceOf('\DateTime', $d->get($m, 'created', $date));
-        $this->assertEquals($date, $d->get($m, 'created', $date)->format('Y-m-d'));
+        $this->assertInstanceOf('\DateTime', $d->databaseToPHP($m, 'created', $date));
+        $this->assertEquals($date, $d->databaseToPHP($m, 'created', $date)->format('Y-m-d'));
 
         // Testing with a datetime style format from a db:
         $date = '2014-07-02 08:45:32';
-        $this->assertInstanceOf('\DateTime', $d->get($m, 'created', $date));
-        $this->assertEquals($date, $d->get($m, 'created', $date)->format('Y-m-d H:i:s'));
+        $this->assertInstanceOf('\DateTime', $d->databaseToPHP($m, 'created', $date));
+        $this->assertEquals($date, $d->databaseToPHP($m, 'created', $date)->format('Y-m-d H:i:s'));
+
+        // Testing with a null:
+        $this->assertNull($d->databaseToPHP($m, 'created', null));
     }
 }

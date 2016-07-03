@@ -146,7 +146,7 @@ abstract class Model
         // Perform the field transform on it:
         $field = $this->meta->field($key);
         if ($field) {
-            $value = $field->get($this, $key, $value);
+            $value = $field->databaseToPHP($this, $key, $value);
         }
 
         return $value;
@@ -176,7 +176,7 @@ abstract class Model
             // Perform the field transform on it:
             $field = $this->meta->field($key);
             if ($field) {
-                $value = $field->get($this, $key, $value);
+                $value = $field->databaseToPHP($this, $key, $value);
             }
         }
 
@@ -317,7 +317,7 @@ abstract class Model
         $processed = [];
         foreach ($input as $key => $value) {
             $field = $this->meta->field($key);
-            $processed[$key] = $field->save($this, $key, $value);
+            $processed[$key] = $field->phpToDatabase($this, $key, $value);
         }
         return $processed;
     }

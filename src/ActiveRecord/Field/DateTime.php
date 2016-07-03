@@ -26,12 +26,12 @@ class DateTime extends Field
      * This is called before a value is returned from the model, so any
      * transformations from database format to PHP value should occur here.
      *
-     * @param   Model   $model  The model we're reading from
-     * @param   string  $field  The name of the field we're reading from
-     * @param   mixed   $value  The "raw" Value (read from database)
+     * @param   Model  $model The model we're reading from
+     * @param   string $field The name of the field we're reading from
+     * @param   mixed  $value The "raw" Value (read from database)
      * @return  mixed   The $value, with any changes made.
      */
-    public function get(Model $model, $field, $value)
+    public function databaseToPHP(Model $model, $field, $value)
     {
         if (is_numeric($value)) {
             $dt = new NativeDateTime(null, $this->options['timezone']);
@@ -62,7 +62,7 @@ class DateTime extends Field
         if (is_object($value) && $value instanceof NativeDateTime) {
             $valueDT = $value;
         } else {
-            $valueDT = $this->get($model, $field, $value);
+            $valueDT = $this->databaseToPHP($model, $field, $value);
         }
 
         // Now format it if needs be and return

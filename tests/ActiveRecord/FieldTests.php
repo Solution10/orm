@@ -33,15 +33,15 @@ abstract class FieldTests extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Solution10\\ORM\\ActiveRecord\\Field', $instance);
     }
 
-    public function testGet()
+    public function testDatabaseToPHP()
     {
         // For most fields, there's no transform so this is a straight pass back
         $m = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
 
         $i = $this->fieldInstance();
-        $this->assertNull($i->get($m, 'name', null));
-        $this->assertEquals('Alex', $i->get($m, 'name', 'Alex'));
-        $this->assertEquals(27.5, $i->get($m, 'age', 27.5));
+        $this->assertNull($i->databaseToPHP($m, 'name', null));
+        $this->assertEquals('Alex', $i->databaseToPHP($m, 'name', 'Alex'));
+        $this->assertEquals(27.5, $i->databaseToPHP($m, 'age', 27.5));
     }
 
     public function testSet()
@@ -61,8 +61,8 @@ abstract class FieldTests extends PHPUnit_Framework_TestCase
         $m = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
 
         $i = $this->fieldInstance();
-        $this->assertNull($i->save($m, 'name', null));
-        $this->assertEquals('Alex', $i->save($m, 'name', 'Alex'));
-        $this->assertEquals(27.5, $i->save($m, 'age', 27.5));
+        $this->assertNull($i->phpToDatabase($m, 'name', null));
+        $this->assertEquals('Alex', $i->phpToDatabase($m, 'name', 'Alex'));
+        $this->assertEquals(27.5, $i->phpToDatabase($m, 'age', 27.5));
     }
 }

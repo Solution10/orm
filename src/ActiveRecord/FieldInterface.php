@@ -13,7 +13,7 @@ interface FieldInterface
      * @param   mixed   $value  The "raw" Value (read from database)
      * @return  mixed   The $value, with any changes made.
      */
-    public function get(Model $model, $field, $value);
+    public function databaseToPHP(Model $model, $field, $value);
 
     /**
      * This is called when a value is set to the model. You can perform any
@@ -36,7 +36,7 @@ interface FieldInterface
      * @param   mixed   $value  The value passed by the user.
      * @return  mixed   The $value, with any changes made
      */
-    public function save(Model $model, $field, $value);
+    public function phpToDatabase(Model $model, $field, $value);
 
     /**
      * Returns the validation rules attached to this field.

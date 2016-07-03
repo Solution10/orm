@@ -202,9 +202,9 @@ class Connection extends \PDO
      * @param   array   $result
      * @return  array
      */
-    protected function cleanResult(array $result = array())
+    protected function cleanResult($result = array())
     {
-        if (count($result) == 0) {
+        if (!$result) {
             return $result;
         }
 

@@ -45,15 +45,15 @@ class BooleanTests extends FieldTests
         $this->assertEquals(0, $b->set($m, 'bool', null));
     }
 
-    public function testGet()
+    public function testDatabaseToPHP()
     {
         $m = Model::factory('Solution10\ORM\Tests\ActiveRecord\Stubs\User');
 
         $b = new Boolean();
-        $this->assertTrue(is_bool($b->get($m, 'bool', 1)));
-        $this->assertTrue($b->get($m, 'bool', 1));
+        $this->assertTrue(is_bool($b->databaseToPHP($m, 'bool', 1)));
+        $this->assertTrue($b->databaseToPHP($m, 'bool', 1));
 
-        $this->assertTrue(is_bool($b->get($m, 'bool', 0)));
-        $this->assertFalse($b->get($m, 'bool', 0));
+        $this->assertTrue(is_bool($b->databaseToPHP($m, 'bool', 0)));
+        $this->assertFalse($b->databaseToPHP($m, 'bool', 0));
     }
 }

@@ -3,8 +3,7 @@
 namespace Solution10\ORM\Tests\ActiveRecord\ModelTests;
 
 use Solution10\ORM\ActiveRecord\Model;
-use Solution10\ORM\Connection;
-use Solution10\ORM\ConnectionManager;
+use Solution10\ORM\PHPUnit\BasicDatabase;
 use PHPUnit_Framework_TestCase;
 use Solution10\ORM\Tests\ActiveRecord\Stubs\User;
 
@@ -18,42 +17,7 @@ use Solution10\ORM\Tests\ActiveRecord\Stubs\User;
  */
 class DatabaseTest extends PHPUnit_Framework_TestCase
 {
-    /**
-     * @var     \Solution10\ORM\Connection
-     */
-    protected $conn;
-
-    /**
-     * Creates the SQLite database
-     */
-    public function setUp()
-    {
-        $c = new ConnectionManager();
-        $c->registerInstance();
-
-        $connection = new Connection('sqlite::memory:');
-        ConnectionManager::instance()->registerConnection('default', $connection);
-
-        // Clear the database and create our test tables:
-        $this->conn = ConnectionManager::instance()->connection('default');
-        $this->conn->query('DROP TABLE IF EXISTS users');
-        $this->conn->query('DROP TABLE IF EXISTS orders');
-
-        $this->conn->query('
-            CREATE TABLE `users` (
-              `id` INTEGER PRIMARY KEY,
-              `name` varchar(32) NOT NULL
-            );
-        ');
-
-        $this->conn->query('
-            CREATE TABLE `orders` (
-              `id` INTEGER PRIMARY KEY,
-              `user_id` INTEGER,
-              `total` FLOAT
-            );
-        ');
-    }
+    use BasicDatabase;
 
     public function testSimpleCreate()
     {

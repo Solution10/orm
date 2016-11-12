@@ -2,7 +2,9 @@
 
 namespace Solution10\ORM\Tests\ActiveRecord\ModelTests;
 
+use Doctrine\Common\Cache\ArrayCache;
 use Solution10\ORM\ActiveRecord\Model;
+use Solution10\ORM\Logger;
 use Solution10\ORM\PHPUnit\BasicDatabase;
 use PHPUnit_Framework_TestCase;
 use Solution10\ORM\Tests\ActiveRecord\Stubs\User;
@@ -135,5 +137,208 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
 
         $result = User::query()->where('name', '=', 'George')->count();
         $this->assertEquals(0, $result);
+    }
+
+    /* --------------- Cached Query Tests ------------------- */
+
+    public function testFetchAllCached()
+    {
+        $this->conn->insert('users', ['name' => 'Alex']);
+
+        // Set up the cache:
+        $cache = new ArrayCache();
+        $this->conn->setCache($cache);
+
+        // Grab a logger so we can count the queries easily:
+        $logger = new Logger();
+        $this->conn->setLogger($logger);
+
+        $query = User::query()
+            ->where('name', '=', 'Alex')
+            ->cacheFor(10, 'find_alex');
+
+        $results1 = $query->fetchAll();
+        $this->assertCount(1, $results1);
+        $this->assertEquals('Alex', $results1[0]->get('name'));
+
+        // Verify the cache:
+        $this->assertTrue($cache->contains('find_alex'));
+
+        $results2 = $query->fetchAll();
+        $this->assertCount(1, $results2);
+        $this->assertEquals('Alex', $results2[0]->get('name'));
+
+        // Verify the query count:
+        $this->assertEquals(1, $logger->totalQueries());
+    }
+
+    public function testFetchAllEmptyCached()
+    {
+        // Set up the cache:
+        $cache = new ArrayCache();
+        $this->conn->setCache($cache);
+
+        // Grab a logger so we can count the queries easily:
+        $logger = new Logger();
+        $this->conn->setLogger($logger);
+
+        $query = User::query()
+            ->where('name', '=', 'Alex')
+            ->cacheFor(10, 'find_alex');
+
+        $results1 = $query->fetchAll();
+        $this->assertCount(0, $results1);
+
+        // Verify the cache:
+        $this->assertTrue($cache->contains('find_alex'));
+
+        $results2 = $query->fetchAll();
+        $this->assertCount(0, $results2);
+
+        // Verify the query count:
+        $this->assertEquals(1, $logger->totalQueries());
+    }
+
+    public function testFetchCached()
+    {
+        $this->conn->insert('users', ['name' => 'Alex']);
+
+        // Set up the cache:
+        $cache = new ArrayCache();
+        $this->conn->setCache($cache);
+
+        // Grab a logger so we can count the queries easily:
+        $logger = new Logger();
+        $this->conn->setLogger($logger);
+
+        $query = User::query()
+            ->where('name', '=', 'Alex')
+            ->cacheFor(10, 'find_alex');
+
+        $results1 = $query->fetch();
+        $this->assertEquals('Alex', $results1->get('name'));
+
+        // Verify the cache:
+        $this->assertTrue($cache->contains('find_alex'));
+
+        $results2 = $query->fetch();
+        $this->assertEquals('Alex', $results2->get('name'));
+
+        // Verify the query count:
+        $this->assertEquals(1, $logger->totalQueries());
+    }
+
+    public function testFetchEmptyCached()
+    {
+        // Set up the cache:
+        $cache = new ArrayCache();
+        $this->conn->setCache($cache);
+
+        // Grab a logger so we can count the queries easily:
+        $logger = new Logger();
+        $this->conn->setLogger($logger);
+
+        $query = User::query()
+            ->where('name', '=', 'Alex')
+            ->cacheFor(10, 'find_alex');
+
+        $results1 = $query->fetch();
+        $this->assertFalse($results1->isLoaded());
+
+        // Verify the cache:
+        $this->assertTrue($cache->contains('find_alex'));
+
+        $results2 = $query->fetch();
+        $this->assertFalse($results2->isLoaded());
+
+        // Verify the query count:
+        $this->assertEquals(1, $logger->totalQueries());
+    }
+
+    public function testCountCached()
+    {
+        $this->conn->insert('users', ['name' => 'Alex']);
+        $this->conn->insert('users', ['name' => 'Lucie']);
+        $this->conn->insert('users', ['name' => 'Archibald']);
+
+        // Set up the cache:
+        $cache = new ArrayCache();
+        $this->conn->setCache($cache);
+
+        // Grab a logger so we can count the queries easily:
+        $logger = new Logger();
+        $this->conn->setLogger($logger);
+
+        $query = User::query()
+            ->cacheFor(10, 'count_users');
+
+        $results1 = $query->count();
+        $this->assertEquals(3, $results1);
+
+        // Verify the cache:
+        $this->assertTrue($cache->contains('count_users__count'));
+
+        $results2 = $query->count();
+        $this->assertEquals(3, $results2);
+
+        // Verify the query count:
+        $this->assertEquals(1, $logger->totalQueries());
+    }
+
+    public function testCountEmptyCached()
+    {
+        // Set up the cache:
+        $cache = new ArrayCache();
+        $this->conn->setCache($cache);
+
+        // Grab a logger so we can count the queries easily:
+        $logger = new Logger();
+        $this->conn->setLogger($logger);
+
+        $query = User::query()
+            ->cacheFor(10, 'count_users');
+
+        $results1 = $query->count();
+        $this->assertEquals(0, $results1);
+
+        // Verify the cache:
+        $this->assertTrue($cache->contains('count_users__count'));
+
+        $results2 = $query->count();
+        $this->assertEquals(0, $results2);
+
+        // Verify the query count:
+        $this->assertEquals(1, $logger->totalQueries());
+    }
+
+    public function testStackingFetchCountCache()
+    {
+        $this->conn->insert('users', ['name' => 'Alex']);
+        $this->conn->insert('users', ['name' => 'Lucie']);
+        $this->conn->insert('users', ['name' => 'Archibald']);
+
+        // Set up the cache:
+        $cache = new ArrayCache();
+        $this->conn->setCache($cache);
+
+        // Grab a logger so we can count the queries easily:
+        $logger = new Logger();
+        $this->conn->setLogger($logger);
+
+        $query = User::query()
+            ->cacheFor(10, 'all_users');
+
+        $results = $query->fetchAll();
+        $this->assertCount(3, $results);
+
+        $count = $query->count();
+        $this->assertEquals(3, $count);
+
+        // Verify the cache:
+        $this->assertTrue($cache->contains('all_users'));
+        $this->assertTrue($cache->contains('all_users__count'));
+
+        // Verify the query count:
+        $this->assertEquals(2, $logger->totalQueries());
     }
 }

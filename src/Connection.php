@@ -2,6 +2,7 @@
 
 namespace Solution10\ORM;
 
+use Doctrine\Common\Cache\Cache;
 use Solution10\SQL\Delete;
 use Solution10\SQL\Dialect\ANSI;
 use Solution10\SQL\Dialect\MySQL;
@@ -15,7 +16,7 @@ use Solution10\SQL\Update;
  * A simple subclass of PDO that adds a couple of needed features, mostly
  * around dialects
  *
- * @package     Solution10
+ * @package     Solution10\ORM\ActiveRecord
  * @author      Alex Gisby<alex@solution10.com>
  * @license     MIT
  */
@@ -25,6 +26,11 @@ class Connection extends \PDO
      * @var     LoggerInterface
      */
     protected $logger = null;
+
+    /**
+     * @var     Cache[]     Cache connections for this Connection to make use of.
+     */
+    protected $caches = [];
 
     /**
      * Returns the correct Solution10\SQL\DialectInterface instance for this connection
@@ -54,9 +60,37 @@ class Connection extends \PDO
      *
      * @return  LoggerInterface
      */
-    public function logger()
+    public function getLogger()
     {
         return $this->logger;
+    }
+
+    /**
+     * Sets a cache adapter on the connection. Optionally assign it a name if you
+     * wish to use multiple cache adapters with the same connection.
+     *
+     * @param   Cache   $cache
+     * @param   string  $name
+     * @return  $this
+     */
+    public function setCache(Cache $cache, $name = 'default')
+    {
+        $this->caches[$name] = $cache;
+        return $this;
+    }
+
+    /**
+     * Returns a cache from this connection by a given name (defaults to 'default')
+     *
+     * @param   string  $name
+     * @return  Cache
+     */
+    public function getCache($name = 'default')
+    {
+        if (!array_key_exists($name, $this->caches)) {
+            throw new \InvalidArgumentException('Cache named "'.$name.'"  is not registered to this Connection.');
+        }
+        return $this->caches[$name];
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Solution10\ORM\Tests;
 
+use Doctrine\Common\Cache\ArrayCache;
 use Solution10\ORM\PHPUnit\BasicDatabase;
 use Solution10\ORM\Logger;
 use Solution10\SQL\Select;
@@ -14,9 +15,29 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
     {
         // Make use of the connection BasicDatabase sets up.
         $logger = new Logger();
-        $this->assertNull($this->conn->logger());
+        $this->assertNull($this->conn->getLogger());
         $this->assertEquals($this->conn, $this->conn->setLogger($logger));
-        $this->assertEquals($logger, $this->conn->logger());
+        $this->assertEquals($logger, $this->conn->getLogger());
+    }
+
+    /**
+     * @expectedException           \InvalidArgumentException
+     * @expectedExceptionMessage    Cache named "Eorzea"  is not registered to this Connection.
+     */
+    public function testGetUndefinedCache()
+    {
+        $this->conn->getCache('Eorzea');
+    }
+
+    public function testGetSetCaches()
+    {
+        $cache = new ArrayCache();
+        $this->assertEquals($this->conn, $this->conn->setCache($cache));
+        $this->assertEquals($cache, $this->conn->getCache());
+
+        $cache2 = new ArrayCache();
+        $this->assertEquals($this->conn, $this->conn->setCache($cache2, 'other_cache'));
+        $this->assertEquals($cache2, $this->conn->getCache('other_cache'));
     }
 
     public function testInsert()

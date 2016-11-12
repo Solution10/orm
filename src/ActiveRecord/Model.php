@@ -481,7 +481,8 @@ abstract class Model
         /* @var $conn Connection */
         $conn = $meta->connectionInstance();
 
-        $result = $conn->fetchAll((string)$select, $select->params());
+        $result = self::fetchWithCache($conn, $select);
+
         $fetchMode = ($select->flag('fetch') == 'one')? 'one' : 'all';
         if ($fetchMode === 'one') {
             if (count($result) > 0) {
@@ -514,13 +515,49 @@ abstract class Model
 
         $select
             ->resetSelect()
-            ->select(new Expression('COUNT('.$meta->primaryKey().')'), 'aggr')
+            ->select(new Expression('COUNT('.($meta->primaryKey()).')'), 'aggr')
             ->resetOrderBy()
             ->resetLimit()
             ->resetOffset()
         ;
 
-        $result = $conn->fetch((string)$select, $select->params());
-        return array_key_exists('aggr', $result)? $result['aggr'] : 0;
+        // If the query is cached, we should also cache its count. This modifies the cache key
+        // to not collide with any other.
+        if ($select->getCacheKey() !== false && !preg_match('/__count$/', $select->getCacheKey())) {
+            $select->setCacheKey($select->getCacheKey().'__count');
+        }
+
+        $result = self::fetchWithCache($conn, $select); //$conn->fetch((string)$select, $select->params());
+        return ($result && array_key_exists('aggr', $result[0]))? $result[0]['aggr'] : 0;
+    }
+
+    /**
+     * Attempts to read a query from cache, and if it doesn't exist (or isn't allowed to
+     * cache) will perform the query for real.
+     *
+     * @param   Connection  $conn
+     * @param   Select      $select
+     * @return  array
+     */
+    protected static function fetchWithCache(Connection $conn, Select $select)
+    {
+        $cacheKey = $select->getCacheKey();
+        $result = false;
+        if ($cacheKey !== false) {
+            $cache = $conn->getCache($select->getCacheName());
+            $result = $cache->fetch($cacheKey);
+        }
+
+        // If we still don't have it, make the call for real:
+        if ($result === false) {
+            $result = $conn->fetchAll((string)$select, $select->params());
+
+            if ($cacheKey && $select->getCacheLifetime() !== Select::CACHE_NEVER) {
+                $cache = $conn->getCache($select->getCacheName());
+                $cache->save($cacheKey, $result, $select->getCacheLifetime());
+            }
+        }
+
+        return $result;
     }
 }
